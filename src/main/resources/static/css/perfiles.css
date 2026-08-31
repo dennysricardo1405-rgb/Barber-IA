@@ -1,0 +1,77 @@
+/* Fondo general oscuro de la app */
+.bg-dark-custom {
+    background-color: #1e1e1e !important;
+}
+
+/* Tarjetas blancas de los roles */
+.perfil-card {
+    border: none;
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #ffffff !important;
+}
+
+.perfil-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Título del Rol (ej: Administrador, Secretario) para que no se pierda en blanco */
+.text-dark-title {
+    color: #e2e2e2 !important; /* Color gris muy claro suave */
+    font-size: 1.8rem;
+    margin-top: 5px !important;
+}
+
+/* Badge Naranja superior */
+.badge-orange {
+    background-color: #ff6b35 !important;
+    color: #ffffff !important;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+/* Etiquetas/Tags de los permisos asignados (Fondo negro, letras blancas) */
+.permiso-tag {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background-color: #1a1c1e !important;
+    color: #ffffff !important;
+    display: inline-block;
+    margin: 4px 2px;
+}
+
+/* Botón Configurar Accesos */
+.btn-action-dark {
+    background-color: #1a1c1e !important;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 20px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-action-dark:hover {
+    background-color: #2d3035 !important;
+    color: #ffffff !important;
+}
+
+/* Estilos adicionales para el Switch del Modal */
+.checkbox-wrapper {
+    padding: 10px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.checkbox-wrapper:hover {
+    background-color: #2d3035 !important;
+}
+
+.custom-switch:checked {
+    background-color: #ff6b35 !important;
+    border-color: #ff6b35 !important;
+}

@@ -1,0 +1,231 @@
+:root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201, 168, 76, 0.12);
+    --bg: #0a0a0a;
+    --bg-card: #111111;
+    --text: #f0ece0;
+    --text-muted: rgba(240, 236, 224, 0.5);
+    --border: rgba(201, 168, 76, 0.2);
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+}
+
+.pago-header {
+    background: #0d0d0d;
+    border-bottom: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+}
+
+.brand {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.5rem;
+}
+
+.pago-container {
+    max-width: 760px;
+    margin: 40px auto;
+    padding: 0 20px 60px;
+}
+
+.section-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.15rem;
+    margin-bottom: 18px;
+}
+
+/* Resumen */
+.resumen-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.07);
+    font-size: 0.9rem;
+}
+
+.resumen-row:last-child {
+    border-bottom: none;
+    font-size: 1rem;
+}
+
+.resumen-label {
+    color: var(--text-muted);
+}
+
+.resumen-value {
+    font-weight: 600;
+}
+
+.resumen-total {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+/* QR Yape (ilustrativo) */
+.yape-box {
+    background: #6c1ea8;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+}
+
+.yape-title {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.yape-sub {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+}
+
+.yape-numero {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    display: inline-block;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #6c1ea8;
+    letter-spacing: 2px;
+}
+
+.yape-qr {
+    width: 140px;
+    height: 140px;
+    background: white;
+    border-radius: 10px;
+    margin: 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.yape-nombre {
+    color: white;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+/* Upload */
+.upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #0e0e0e;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.upload-zone .upload-icon {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.upload-zone p {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.upload-zone strong {
+    color: var(--gold);
+}
+
+#previewImg {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 10px;
+    margin-top: 16px;
+    display: none;
+    border: 1px solid var(--border);
+}
+
+#fileInput {
+    display: none;
+}
+
+/* Btn */
+.btn-gold {
+    background: linear-gradient(135deg, var(--gold), #9a7a30);
+    color: #0a0a0a;
+    font-weight: 700;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-gold:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+}
+
+.btn-gold:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.btn-outline:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.alert-error {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+}
+
+.badge-pendiente {
+    background: rgba(201, 168, 76, 0.15);
+    color: var(--gold);
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}

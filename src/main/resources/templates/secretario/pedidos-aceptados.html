@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <title>Entrega de Pedidos | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <style>
+        .pedido-card {
+            background: #1a1a1f;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .pedido-card:hover {
+            border-color: rgba(46, 204, 113, 0.4);
+            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.08);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pedido-numero {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #c9a84c;
+            font-family: monospace;
+        }
+
+        .pedido-cliente-nombre {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f0ece0;
+            margin-top: 2px;
+        }
+
+        .pedido-cliente-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .pedido-cliente-meta span {
+            color: #888;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pedido-fecha {
+            color: #888;
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
+        .badge-listo {
+            background: rgba(46, 204, 113, 0.12);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Grid de productos */
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .producto-item {
+            background: #111;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .producto-item:hover {
+            border-color: rgba(201, 168, 76, 0.2);
+        }
+
+        .producto-img {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid rgba(201, 168, 76, 0.15);
+        }
+
+        .producto-nombre {
+            font-weight: 600;
+            color: #f0ece0;
+            font-size: 0.88rem;
+            line-height: 1.3;
+        }
+
+        .producto-cantidad {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            color: #c9a84c;
+            font-weight: 700;
+        }
+
+        .producto-subtotal {
+            margin-top: 3px;
+            color: #aaa;
+            font-size: 0.78rem;
+        }
+
+        /* Footer del pedido */
+        .pedido-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pedido-total {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2ecc71;
+            font-family: monospace;
+        }
+
+        .btn-entregado {
+            background: rgba(46, 204, 113, 0.12);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-entregado:hover {
+            background: rgba(46, 204, 113, 0.25);
+            border-color: #2ecc71;
+        }
+
+        /* Buscador */
+        .search-wrap {
+            position: relative;
+            max-width: 320px;
+        }
+
+        .search-wrap input {
+            background: #1a1a1f;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 8px 14px 8px 36px;
+            color: #f0ece0;
+            font-size: 0.88rem;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-wrap input:focus {
+            border-color: rgba(201, 168, 76, 0.4);
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #555;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        /* Toast */
+        #toastBox {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            min-width: 280px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='pedidos_aceptados')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <!-- Encabezado -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold m-0" style="color:#2ecc71;">
+                        <i class="fa-solid fa-box-open me-2"></i>Entrega de Pedidos
+                    </h2>
+                    <p class="text-muted m-0 small">
+                        Pedidos aceptados listos para entregar al cliente en tienda.
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Buscador -->
+                    <div class="search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="buscador" placeholder="Buscar por cliente o #pedido..."
+                            oninput="buscarPedido(this.value)">
+                    </div>
+                    <span class="badge px-3 py-2 fw-semibold" style="background:rgba(46,204,113,0.12);
+                             color:#2ecc71;border:1px solid rgba(46,204,113,0.3);">
+                        <i class="fa-solid fa-boxes-packing me-2"></i>
+                        <span th:text="${pedidos.size()} + ' pedido(s) pendientes de entrega'">
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Lista de pedidos -->
+            <div id="listaPedidos">
+
+                <!-- Empty state -->
+                <div th:if="${pedidos.isEmpty()}" class="empty-state">
+                    <i class="fa-solid fa-box-open" style="color:rgba(46,204,113,0.3);"></i>
+                    <h5 style="color:#555;">No hay pedidos pendientes de entrega</h5>
+                    <p style="color:#444; font-size:0.88rem;">
+                        Los pedidos aceptados aparecerán aquí cuando estén listos.
+                    </p>
+                </div>
+
+                <!-- Pedidos -->
+                <div th:each="pedido : ${pedidos}" class="pedido-card" th:attr="data-pedido-id=${pedido.id},
+                          data-cliente=${pedido.cliente.nombres + ' ' + 
+                                         pedido.cliente.apellidos}">
+
+                    <div class="pedido-header">
+                        <div>
+                            <div class="pedido-numero" th:text="'Pedido #' + ${pedido.id}"></div>
+                            <div class="pedido-cliente-nombre" th:text="${pedido.cliente.nombres + ' ' + 
+                                        pedido.cliente.apellidos}">
+                            </div>
+                            <div class="pedido-cliente-meta">
+                                <span>
+                                    <i class="fa-solid fa-envelope" style="color:#c9a84c;"></i>
+                                    <span th:text="${pedido.cliente.correo}"></span>
+                                </span>
+                                <span th:if="${pedido.cliente.telefono != null}">
+                                    <i class="fa-brands fa-whatsapp" style="color:#25d366;"></i>
+                                    <span th:text="${pedido.cliente.telefono}"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="badge-listo">
+                                <i class="fa-solid fa-circle-check"></i>
+                                Listo para entregar
+                            </span>
+                            <div class="pedido-fecha mt-2" th:text="'Aceptado: ' + 
+                                      ${#temporals.format(pedido.fechaPedido,
+                                                          'dd/MM/yyyy HH:mm')}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid de productos -->
+                    <div class="productos-grid">
+                        <div th:each="det : ${pedido.detalles}" class="producto-item">
+                            <img class="producto-img" th:src="${det.producto.imagen != null and 
+                                       !det.producto.imagen.isEmpty()
+                                       ? det.producto.imagen
+                                       : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}"
+                                th:alt="${det.producto.nombre}"
+                                onerror="this.src='https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'">
+                            <div>
+                                <div class="producto-nombre" th:text="${det.producto.nombre}"></div>
+                                <div class="producto-cantidad">
+                                    <i class="fa-solid fa-cubes" style="font-size:0.7rem;"></i>
+                                    <span th:text="${det.cantidad} + ' und'"></span>
+                                </div>
+                                <div class="producto-subtotal" th:text="'S/ ' + 
+                                          ${#numbers.formatDecimal(det.subtotal,1,2)}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="pedido-footer">
+                        <div>
+                            <div class="pedido-total" th:text="'Total: S/ ' + 
+                                      ${#numbers.formatDecimal(pedido.total,1,2)}">
+                            </div>
+                            <div style="color:#888; font-size:0.8rem; margin-top:3px;">
+                                <span th:text="${#lists.size(pedido.detalles)}"></span>
+                                tipo(s) de producto
+                            </div>
+                        </div>
+                        <button class="btn-entregado" th:attr="onclick='marcarEntregado(' + ${pedido.id} + ')'">
+                            <i class="fa-solid fa-handshake"></i>
+                            Marcar como entregado
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="toastBox"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function getCsrf() {
+            return document.querySelector('meta[name="_csrf"]')?.content || '';
+        }
+
+        async function marcarEntregado(id) {
+            if (!confirm('¿Confirmas que el cliente recogió su pedido #' + id + '?')) return;
+
+            const res = await fetch(`/secretario/pedidos/${id}/entregar`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrf(),
+                    'Accept': 'application/json'
+                }
+            });
+
+            const contentType = res.headers.get('content-type');
+            if (!contentType?.includes('application/json')) {
+                mostrarToast('err', 'Error de sesión. Recarga la página.');
+                return;
+            }
+
+            const data = await res.json();
+            if (data.ok) {
+                const card = document.querySelector(`[data-pedido-id="${id}"]`);
+                if (card) {
+                    card.style.transition = 'opacity 0.4s, transform 0.4s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(20px)';
+                    setTimeout(() => card.remove(), 400);
+                }
+                mostrarToast('ok', '✅ Pedido #' + id + ' marcado como entregado.');
+                // Actualizar contador
+                const badge = document.querySelector('.badge span');
+                if (badge) {
+                    const actual = parseInt(badge.textContent) - 1;
+                    badge.textContent = actual + ' pedido(s) pendientes de entrega';
+                }
+            } else {
+                mostrarToast('err', data.error || 'No se pudo procesar.');
+            }
+        }
+
+        function buscarPedido(texto) {
+            const q = texto.toLowerCase();
+            document.querySelectorAll('.pedido-card').forEach(card => {
+                const cliente = card.dataset.cliente?.toLowerCase() || '';
+                const id = card.dataset.pedidoId || '';
+                card.style.display =
+                    (cliente.includes(q) || id.includes(q)) ? '' : 'none';
+            });
+        }
+
+        function mostrarToast(tipo, texto) {
+            const box = document.getElementById('toastBox');
+            box.innerHTML = `
+        <div style="background:${tipo === 'ok' ? '#0f2e1a' : '#2e0f0f'};
+                    border:1px solid ${tipo === 'ok' ? '#2ecc71' : '#e74c3c'};
+                    color:${tipo === 'ok' ? '#2ecc71' : '#e74c3c'};
+                    border-radius:12px; padding:14px 18px;
+                    display:flex; align-items:center; gap:10px; font-weight:600;
+                    box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+            <i class="fa-solid fa-${tipo === 'ok' ? 'circle-check' : 'circle-xmark'} fa-lg"></i>
+            <span>${texto}</span>
+        </div>`;
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 4500);
+        }
+    </script>
+</body>
+
+</html>

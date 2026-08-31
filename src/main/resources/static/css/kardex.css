@@ -1,0 +1,58 @@
+.text-gold {
+    color: #c9a84c !important;
+}
+
+.stat-mini {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 16px 20px;
+}
+
+.badge-entrada {
+    background: rgba(46, 204, 113, 0.12);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.75rem;
+}
+
+.badge-salida {
+    background: rgba(231, 76, 60, 0.12);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.75rem;
+}
+
+.input-dark-kardex {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f0ece0;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+.input-dark-kardex:focus {
+    border-color: #c9a84c;
+    outline: none;
+    box-shadow: none;
+}
+
+.page-link-dark {
+    background: #141414 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #f0ece0 !important;
+}
+
+.page-item.active .page-link-dark {
+    background: #c9a84c !important;
+    border-color: #c9a84c !important;
+    color: #111 !important;
+    font-weight: bold;
+}

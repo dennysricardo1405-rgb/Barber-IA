@@ -1,0 +1,47 @@
+/* Banner de Bienvenida */
+.welcome-banner {
+    background-color: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+/* Tarjetas Estadísticas */
+.stat-card {
+    border: none;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Colores y Degradados */
+.bg-gradient-blue {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+.bg-gradient-green {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+/* Utilidades de soporte */
+.bg-white-50 { background-color: rgba(255,255,255,0.2); }
+.bg-primary-subtle { background-color: #e7f1ff; }
+.bg-purple-subtle { background-color: #f3e5f5; }
+.text-purple { color: #8e44ad; }

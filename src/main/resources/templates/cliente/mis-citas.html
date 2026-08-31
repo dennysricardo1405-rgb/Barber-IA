@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <title>Mis Citas | Barbería La Clásica</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style-public.css}">
+    <link rel="stylesheet" th:href="@{/css/miscitas.css}">
+</head>
+
+<body>
+
+    <!-- NAVBAR igual -->
+    <nav class="navbar-custom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="/" class="navbar-brand-text">
+                <i class="fa-solid fa-scissors me-2"></i>Barberia
+            </a>
+            <div class="d-flex gap-3 align-items-center">
+                <div sec:authorize="isAnonymous()" class="d-flex gap-3 align-items-center">
+                    <a href="/cliente/login" class="btn-outline-gold">Iniciar Sesión</a>
+                    <a href="/cliente/registro" class="btn-gold">Registrarse</a>
+                </div>
+                <div sec:authorize="hasRole('CLIENTE')" class="d-flex gap-3 align-items-center">
+                    <a href="/reservar" class="btn-gold">
+                        <i class="fa-solid fa-calendar-check me-2"></i>Reservar Cita
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn-outline-gold dropdown-toggle d-flex align-items-center gap-2" type="button"
+                            data-bs-toggle="dropdown">
+                            <i class="fa-solid fa-circle-user fa-lg"></i>
+                            <span sec:authentication="name">Mi cuenta</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end"
+                            style="background:#111;border:1px solid rgba(201,168,76,0.2);">
+                            <li>
+                                <a class="dropdown-item" href="/cliente/mis-citas"
+                                    style="color:#f0ece0;padding:10px 16px;">
+                                    <i class="fa-solid fa-clock-rotate-left me-2" style="color:#c9a84c"></i>
+                                    Mi Historial
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider" style="border-color:rgba(201,168,76,0.2)">
+                            </li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="px-2">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" style="color:#e74c3c;background:none;border:none;
+                                           width:100%;text-align:left;padding:10px 16px;">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar Sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-main">
+        <h1 class="page-title">Mis Citas</h1>
+        <p class="page-sub">Aquí puedes ver el historial y estado de todas tus reservas.</p>
+
+        <!-- Alerta éxito reserva -->
+        <div th:if="${param.exito}" class="alert-ok">
+            <i class="fa-solid fa-circle-check fa-lg"></i>
+            <div>
+                <strong>¡Reserva enviada con éxito!</strong>
+                Tu cita está en estado <strong>Pendiente</strong>.
+                Te notificaremos por correo cuando sea confirmada.
+            </div>
+        </div>
+
+        <!-- Lista de citas -->
+        <div th:if="${!citas.isEmpty()}">
+            <div th:each="cita : ${citas}" class="cita-card">
+
+                <!-- Fecha -->
+                <div class="cita-fecha-box">
+                    <div class="cita-dia" th:text="${#temporals.format(cita.fecha,'dd')}">15</div>
+                    <div class="cita-mes" th:text="${#temporals.format(cita.fecha,'MMM')}">Ene</div>
+                </div>
+
+                <div class="cita-divider"></div>
+
+                <!-- Info -->
+                <div class="cita-info">
+                    <div class="cita-servicio" th:text="${cita.servicio.nombre}">Corte Clásico</div>
+                    <div class="cita-meta">
+                        <span>
+                            <i class="fa-solid fa-user"></i>
+                            <span th:text="${cita.barbero.nombre}">Carlos</span>
+                        </span>
+                        <span>
+                            <i class="fa-solid fa-clock"></i>
+                            <span th:text="${#temporals.format(cita.horaInicio,'HH:mm')}">09:30</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Precio -->
+                <div class="cita-precio" th:text="'S/. ' + ${cita.totalPrecio}">S/. 25.00</div>
+
+                <!-- Badge estado -->
+                <div>
+                    <span th:switch="${cita.estado}">
+                        <span th:case="1" class="badge-estado badge-pendiente">
+                            <i class="fa-solid fa-hourglass-half me-1"></i>Pendiente
+                        </span>
+                        <span th:case="2" class="badge-estado badge-aceptada">
+                            <i class="fa-solid fa-circle-check me-1"></i>Confirmada
+                        </span>
+                        <span th:case="3" class="badge-estado badge-completada">
+                            <i class="fa-solid fa-star me-1"></i>Completada
+                        </span>
+                        <span th:case="0" class="badge-estado badge-cancelada">
+                            <i class="fa-solid fa-xmark me-1"></i>Cancelada
+                        </span>
+                    </span>
+                </div>
+
+                <!-- Botones acción (solo pendiente=1 o confirmada=2) -->
+                <div th:if="${cita.estado == 1 or cita.estado == 2}" class="d-flex gap-2 ms-2">
+
+                    <!-- Reprogramar solo si está confirmada (estado 2) -->
+                    <button th:if="${cita.estado == 2 and !cita.reprogramada}" class="btn-accion btn-reprogramar"
+                        th:attr="onclick='abrirReprogramar(' + ${cita.id} + ', \'' 
+                 + ${cita.barbero.id} + '\')'" title="Reprogramar">
+                        <i class="fa-solid fa-calendar-pen"></i>
+                    </button>
+                    <span th:if="${cita.estado == 2 and cita.reprogramada}" class="btn-accion" style="opacity:0.35; cursor:not-allowed; background:rgba(255,255,255,0.05);
+                        border:1px solid rgba(255,255,255,0.1); color:#666;" title="Ya reprogramaste esta cita una vez">
+                        <i class="fa-solid fa-calendar-pen"></i>
+                    </span>
+                    <!-- Cancelar siempre si está en 1 o 2 -->
+                    <button class="btn-accion btn-cancelar" th:attr="onclick='confirmarCancelar(' + ${cita.id} + ')'"
+                        title="Cancelar cita">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${citas.isEmpty()}" class="empty-state">
+            <div class="empty-icon"><i class="fa-solid fa-calendar-xmark"></i></div>
+            <h3>Todavía no tienes citas registradas</h3>
+            <a href="/reservar" class="btn-gold mt-4">
+                <i class="fa-solid fa-plus"></i>Reservar mi primera cita
+            </a>
+        </div>
+
+        <!-- ── Paginación ── -->
+        <div th:if="${totalPaginas > 1}" class="d-flex justify-content-center align-items-center gap-2 mt-4">
+            <a th:if="${paginaActual > 0}" th:href="@{/cliente/mis-citas(pagina=${paginaActual - 1})}" class="btn-pag">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+            <span class="pag-info" th:text="'Página ' + ${paginaActual + 1} + ' de ' + ${totalPaginas}">
+            </span>
+            <a th:if="${paginaActual + 1 < totalPaginas}" th:href="@{/cliente/mis-citas(pagina=${paginaActual + 1})}"
+                class="btn-pag">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+
+        <div th:if="${!citas.isEmpty()}" class="text-center mt-4">
+            <a href="/reservar" class="btn-gold">
+                <i class="fa-solid fa-plus"></i>Nueva reserva
+            </a>
+        </div>
+    </div>
+
+    <!-- ══ MODAL: Confirmar Cancelación ══ -->
+    <div class="modal fade" id="modalCancelar" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:#111; color:#f0ece0; border:1px solid rgba(201,168,76,0.2);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-triangle-exclamation me-2" style="color:#e74c3c"></i>
+                        ¿Cancelar reserva?
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p style="color:#aaa; font-size:0.95rem; line-height:1.6;">
+                        ¿Estás seguro de que deseas cancelar esta cita?<br>
+                        <strong style="color:#f0ece0;">No hay devolución del pago realizado.</strong>
+                    </p>
+                    <div style="background:#1a1a1a; border-radius:8px; padding:12px; 
+                            border-left:3px solid #c9a84c; font-size:0.88rem; color:#aaa;">
+                        <i class="fa-solid fa-lightbulb me-2" style="color:#c9a84c"></i>
+                        Si lo prefieres, puedes <strong style="color:#c9a84c;">reprogramar tu cita</strong>
+                        en lugar de cancelarla.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn-outline" data-bs-dismiss="modal">
+                        No, mantener cita
+                    </button>
+                    <button type="button" class="btn-cancelar-confirm" id="btnConfirmarCancelar">
+                        <i class="fa-solid fa-xmark me-2"></i>Sí, cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MODAL: Reprogramar (3 pasos) ══ -->
+    <div class="modal fade" id="modalReprogramar" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:#111; color:#f0ece0; 
+                                          border:1px solid rgba(201,168,76,0.2);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-calendar-pen me-2" style="color:#c9a84c"></i>
+                        Reprogramar Cita
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Paso 1: Barbero -->
+                    <div id="reprPaso1">
+                        <p class="mb-3" style="color:#aaa; font-size:0.9rem;">
+                            <strong style="color:#c9a84c;">Paso 1:</strong>
+                            ¿Con qué barbero quieres reagendar?
+                        </p>
+                        <div id="reprBarberoList" class="d-flex flex-column gap-2"></div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button class="btn-gold" id="reprBtnPaso2" onclick="reprIrPaso(2)" disabled>
+                                Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2: Fecha -->
+                    <div id="reprPaso2" style="display:none;">
+                        <p class="mb-3" style="color:#aaa; font-size:0.9rem;">
+                            <strong style="color:#c9a84c;">Paso 2:</strong>
+                            Elige la nueva fecha
+                        </p>
+                        <input type="date" id="reprFecha" class="modal-form-control w-100" onchange="reprCargarHoras()">
+                        <div id="reprHorasWrap" class="mt-3" style="display:none;">
+                            <p style="color:#aaa; font-size:0.85rem;" class="mb-2">
+                                Horarios disponibles:
+                            </p>
+                            <div class="horas-grid" id="reprHorasGrid"></div>
+                        </div>
+                        <div id="reprLoadingHoras" style="display:none; color:#aaa; font-size:0.9rem; margin-top:10px;">
+                            <i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando...
+                        </div>
+                        <div id="reprSinHoras" style="display:none; color:#aaa; font-size:0.9rem; margin-top:10px;">
+                            <i class="fa-solid fa-calendar-xmark me-2"></i>
+                            No hay horarios disponibles.
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn-outline" onclick="reprIrPaso(1)">
+                                <i class="fa-solid fa-arrow-left me-2"></i>Atrás
+                            </button>
+                            <button class="btn-gold" id="reprBtnPaso3" onclick="reprIrPaso(3)" disabled>
+                                Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3: Confirmar -->
+                    <div id="reprPaso3" style="display:none;">
+                        <p class="mb-3" style="color:#aaa; font-size:0.9rem;">
+                            <strong style="color:#c9a84c;">Paso 3:</strong>
+                            Confirma el cambio
+                        </p>
+                        <div style="background:#1a1a1a; border-radius:10px; padding:16px;">
+                            <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid #222;">
+                                <span style="color:#aaa;">Barbero</span>
+                                <span id="reprResumenBarbero" class="fw-bold"></span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid #222;">
+                                <span style="color:#aaa;">Fecha</span>
+                                <span id="reprResumenFecha" class="fw-bold"></span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2">
+                                <span style="color:#aaa;">Hora</span>
+                                <span id="reprResumenHora" class="fw-bold"></span>
+                            </div>
+                        </div>
+                        <div style="background:#1a1a1a; border-radius:8px; padding:10px 14px; 
+                                margin-top:12px; font-size:0.83rem; color:#aaa;
+                                border-left:3px solid #c9a84c;">
+                            <i class="fa-solid fa-info-circle me-2" style="color:#c9a84c"></i>
+                            La cita volverá a estado <strong style="color:#f0ece0;">Pendiente</strong>
+                            hasta que el secretario la confirme nuevamente.
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn-outline" onclick="reprIrPaso(2)">
+                                <i class="fa-solid fa-arrow-left me-2"></i>Atrás
+                            </button>
+                            <button class="btn-gold" onclick="ejecutarReprogramar()">
+                                <i class="fa-solid fa-check me-2"></i>Confirmar cambio
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje error -->
+                    <div id="reprError" style="display:none; margin-top:12px; padding:10px 14px; 
+                            background:#2a0a0a; border-radius:8px; 
+                            color:#e74c3c; font-size:0.88rem;">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const CSRF = /*[[${_csrf.token}]]*/ '';
+    const barberosList = /*[[${barberos}]]*/[];
+</script>
+<script th:src="@{/js/mis-citas.js}"></script>
+
+</html>

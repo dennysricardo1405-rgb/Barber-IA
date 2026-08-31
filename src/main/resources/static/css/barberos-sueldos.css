@@ -1,0 +1,236 @@
+:root {
+    --gold: #c9a84c;
+    --gold-dim: rgba(201, 168, 76, 0.12);
+    --border-gold: rgba(201, 168, 76, 0.25);
+}
+
+.periodo-selector {
+    background: #141414;
+    border: 1px solid var(--border-gold);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.periodo-selector select {
+    background: #1e1e1e;
+    color: #fff;
+    border: 1px solid var(--border-gold);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 0.9rem;
+}
+
+.periodo-selector select:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+/* Cards de barbero */
+.barbero-card {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.barbero-card:hover {
+    border-color: var(--border-gold);
+}
+
+.barbero-header {
+    background: #1a1a1a;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.barbero-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    object-fit: cover;
+    background: var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.barbero-nombre {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.barbero-esp {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+}
+
+/* Stats del barbero */
+.stats-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-gold {
+    color: var(--gold);
+}
+
+.stat-green {
+    color: #2ecc71;
+}
+
+/* Badge comisión */
+.badge-comision {
+    background: rgba(46, 204, 113, 0.12);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+/* Tabla de citas del barbero */
+.citas-detalle {
+    display: none;
+}
+
+.citas-detalle.open {
+    display: block;
+}
+
+.citas-detalle table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.citas-detalle thead th {
+    background: #1e1e1e;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.citas-detalle tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #f0ece0;
+}
+
+.citas-detalle tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.citas-detalle .td-precio {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.citas-detalle .td-comision {
+    color: #2ecc71;
+    font-weight: 700;
+}
+
+/* Sin citas */
+.sin-citas {
+    text-align: center;
+    padding: 28px;
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.85rem;
+}
+
+/* Totales generales */
+.resumen-total {
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.1), rgba(201, 168, 76, 0.05));
+    border: 1px solid var(--border-gold);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.total-item {
+    text-align: center;
+}
+
+.total-valor {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.total-label {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+/* Chevron */
+.chevron {
+    transition: transform 0.3s;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.chevron.open {
+    transform: rotate(180deg);
+}
+
+.btn-gold-sm {
+    background: linear-gradient(135deg, var(--gold), #9a7a30);
+    color: #0a0a0a;
+    font-weight: 700;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-gold-sm:hover {
+    opacity: 0.85;
+}

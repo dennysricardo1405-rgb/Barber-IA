@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Reservar Cita | Barbería La Clásica</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf-header" content="X-CSRF-TOKEN" />
+    <link rel="stylesheet" th:href="@{/css/reservar-pasos.css(v=2)}">
+</head>
+
+<body>
+
+    <div class="reserva-header">
+        <div class="brand"><i class="fa-solid fa-scissors me-2"></i>Barbería La Clásica</div>
+        <div class="mt-2">
+            <a href="/" class="back-link"><i class="fa-solid fa-arrow-left me-1"></i>Volver al inicio</a>
+        </div>
+    </div>
+
+    <div th:if="${errorReserva}" class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+        <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+        <div>
+            <strong>No puedes reservar aún.</strong><br>
+            <span th:text="${errorReserva}"></span>
+            <div class="mt-2">
+                <a href="/cliente/mis-citas" class="btn btn-sm btn-outline-warning">Ver mis citas</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-bar-custom">
+        <div class="text-center">
+            <div class="step-dot active" id="dot1">1</div>
+            <div class="step-label">Servicio</div>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="text-center">
+            <div class="step-dot" id="dot2">2</div>
+            <div class="step-label">Barbero</div>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="text-center">
+            <div class="step-dot" id="dot3">3</div>
+            <div class="step-label">Fecha</div>
+        </div>
+        <div class="step-line" id="line3"></div>
+        <div class="text-center">
+            <div class="step-dot" id="dot4">4</div>
+            <div class="step-label">Confirmar</div>
+        </div>
+    </div>
+
+    <div class="steps-wrapper">
+
+        <!-- ══ PASO 1: SERVICIO ══ -->
+        <div class="step-panel visible" id="step1">
+            <h2 class="step-title">Elige tu servicio</h2>
+            <p class="step-subtitle">Selecciona el servicio que deseas reservar</p>
+            <div class="options-grid">
+                <div th:each="s : ${servicios}" class="option-card" th:data-id="${s.id}" th:data-nombre="${s.nombre}"
+                    th:data-precio="${promoHelper.calcularPrecioServicio(s, clienteLogueado)}" th:data-duracion="${s.duracionMinutos}"
+                    onclick="seleccionarServicio(this)">
+                    <div class="option-icon"><i class="fa-solid fa-cut"></i></div>
+                    <div class="option-name" th:text="${s.nombre}">Corte Clásico</div>
+                    <div class="option-detail" th:text="${s.duracionMinutos} + ' min'">30 min</div>
+
+                    <div>
+                        <small th:if="${promoHelper.calcularPrecioServicio(s, clienteLogueado) < s.precio.doubleValue()}"
+                            style="text-decoration: line-through; color: rgba(255,255,255,0.3); font-size: 0.8rem; display: block;"
+                            th:text="'S/. ' + ${s.precio}"></small>
+
+                        <div class="option-price"
+                            th:text="'S/. ' + ${#numbers.formatDecimal(promoHelper.calcularPrecioServicio(s, clienteLogueado), 1, 2)}">
+                            S/. 25.00</div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-4">
+                <button class="btn-gold" id="btnSiguiente1" onclick="irPaso(2)" disabled>
+                    Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ PASO 2: BARBERO ══ -->
+        <div class="step-panel" id="step2">
+            <h2 class="step-title">Elige tu barbero</h2>
+            <p class="step-subtitle">¿Con quién quieres tu cita?</p>
+            <div class="d-flex flex-column gap-3">
+                <div th:each="b : ${barberos}" class="barbero-card" th:data-id="${b.id}" th:data-nombre="${b.nombre}"
+                    onclick="seleccionarBarbero(this)">
+                    <div class="barbero-avatar"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div class="barbero-name" th:text="${b.nombre}">Carlos Mendoza</div>
+                        <div class="barbero-sub">Barbero profesional</div>
+                    </div>
+                    <div class="ms-auto">
+                        <i class="fa-solid fa-circle-check check-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn-outline" onclick="irPaso(1)">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Atrás
+                </button>
+                <button class="btn-gold" id="btnSiguiente2" onclick="irPaso(3)" disabled>
+                    Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ PASO 3: FECHA Y HORA ══ -->
+        <div class="step-panel" id="step3">
+            <h2 class="step-title">Elige fecha y hora</h2>
+            <p class="step-subtitle">Selecciona el día y el horario disponible</p>
+            <div class="fecha-picker">
+                <label class="modal-label mb-2">FECHA</label>
+                <input type="date" id="fechaInput" onchange="cargarHoras()">
+                <div id="horasContainer" class="mt-3" style="display:none;">
+                    <label class="modal-label mb-2">HORARIOS DISPONIBLES</label>
+                    <div class="horas-grid" id="horasGrid"></div>
+                </div>
+                <div id="loadingHoras"
+                    style="display:none; color:var(--text-muted); margin-top:12px; font-size:0.9rem;">
+                    <i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando horarios...
+                </div>
+                <div id="sinHoras" style="display:none; color:var(--text-muted); margin-top:12px; font-size:0.9rem;">
+                    <i class="fa-solid fa-calendar-xmark me-2"></i>No hay horarios disponibles para este día.
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn-outline" onclick="irPaso(2)">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Atrás
+                </button>
+                <button class="btn-gold" id="btnSiguiente3" onclick="irPaso(4)" disabled>
+                    Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ PASO 4: CONFIRMAR ══ -->
+        <div class="step-panel" id="step4">
+            <h2 class="step-title">Confirma tu reserva</h2>
+            <p class="step-subtitle">Revisa los detalles antes de continuar al pago</p>
+            <div class="resumen-card">
+                <div class="resumen-row">
+                    <span class="resumen-label"><i class="fa-solid fa-cut me-2"></i>Servicio</span>
+                    <span class="resumen-value" id="resumenServicio">—</span>
+                </div>
+                <div class="resumen-row">
+                    <span class="resumen-label"><i class="fa-solid fa-user me-2"></i>Barbero</span>
+                    <span class="resumen-value" id="resumenBarbero">—</span>
+                </div>
+                <div class="resumen-row">
+                    <span class="resumen-label"><i class="fa-solid fa-calendar me-2"></i>Fecha</span>
+                    <span class="resumen-value" id="resumenFecha">—</span>
+                </div>
+                <div class="resumen-row">
+                    <span class="resumen-label"><i class="fa-solid fa-clock me-2"></i>Hora</span>
+                    <span class="resumen-value" id="resumenHora">—</span>
+                </div>
+                <div class="resumen-row">
+                    <span class="resumen-label"><i class="fa-solid fa-tag me-2"></i>Total a pagar</span>
+                    <span class="resumen-value resumen-total" id="resumenPrecio">—</span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn-outline" onclick="irPaso(3)">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Atrás
+                </button>
+                <button class="btn-gold" onclick="procederAlPago()">
+                    <i class="fa-solid fa-lock me-2"></i>Continuar al pago
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══ MODAL: Login / Registro ══ -->
+    <div class="modal fade" id="modalAuth" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-lock me-2"></i>Necesitas una cuenta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p style="color:var(--text-muted); font-size:0.9rem;" class="mb-4">
+                        Para confirmar tu reserva necesitas iniciar sesión o crear una cuenta.
+                        <strong style="color:var(--text);">¡Es rápido!</strong>
+                    </p>
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="showTab('login')">Iniciar Sesión</button>
+                        <button class="tab-btn" onclick="showTab('registro')">Crear Cuenta</button>
+                    </div>
+
+                    <!-- ── LOGIN ── -->
+                    <div id="tabLogin">
+                        <div id="loginError" class="alert-error mb-3" style="display:none;"></div>
+                        <div class="mb-3">
+                            <label class="modal-label">CORREO ELECTRÓNICO</label>
+                            <!-- ← máx 30 caracteres -->
+                            <input type="email" id="loginEmail" class="modal-form-control w-100"
+                                placeholder="tu@correo.com" maxlength="30">
+                        </div>
+                        <div class="mb-4">
+                            <label class="modal-label">CONTRASEÑA</label>
+                            <div class="d-flex">
+                                <!-- ← mín 6, máx 30 caracteres -->
+                                <input type="password" id="loginPassword" class="modal-form-control flex-grow-1"
+                                    placeholder="Mín. 6 caracteres" minlength="6" maxlength="30"
+                                    style="border-radius:6px 0 0 6px; border-right:none;">
+                                <button type="button" onclick="togglePass('loginPassword','ojoLogin')" style="background:#1a1a1a;
+                                               border:1px solid rgba(201,168,76,0.2);
+                                               border-left:none;
+                                               border-radius:0 6px 6px 0;
+                                               color:rgba(240,236,224,0.5);
+                                               padding:0 14px; cursor:pointer;">
+                                    <i id="ojoLogin" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <small style="color:rgba(240,236,224,0.4); font-size:0.75rem;">
+                                Entre 6 y 30 caracteres
+                            </small>
+                        </div>
+                        <button class="btn-gold w-100" onclick="hacerLogin()">
+                            <i class="fa-solid fa-right-to-bracket me-2"></i>Ingresar y continuar
+                        </button>
+                    </div>
+
+                    <!-- ── REGISTRO ── -->
+                    <div id="tabRegistro" style="display:none;">
+                        <div id="registroError" class="alert-error mb-3" style="display:none;"></div>
+                        <div class="mb-3">
+                            <label class="modal-label">DNI</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="regDni" class="modal-form-control flex-grow-1" maxlength="8"
+                                    placeholder="12345678" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                <button class="btn-gold px-3" onclick="buscarDniModal()">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="modal-label">NOMBRES</label>
+                                <input type="text" id="regNombres" class="modal-form-control w-100" readonly>
+                            </div>
+                            <div class="col-6">
+                                <label class="modal-label">APELLIDOS</label>
+                                <input type="text" id="regApellidos" class="modal-form-control w-100" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="modal-label">TELÉFONO (WhatsApp)</label>
+                            <input type="text" id="regTelefono" class="modal-form-control w-100" maxlength="9"
+                                placeholder="987654321" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                        </div>
+                        <div class="mb-3">
+                            <label class="modal-label">CORREO</label>
+                            <!-- ← máx 30 caracteres -->
+                            <input type="email" id="regCorreo" class="modal-form-control w-100"
+                                placeholder="tu@correo.com" maxlength="30">
+                        </div>
+                        <div class="mb-4">
+                            <label class="modal-label">CONTRASEÑA</label>
+                            <div class="d-flex">
+                                <!-- ← mín 6, máx 30 caracteres -->
+                                <input type="password" id="regPassword" class="modal-form-control flex-grow-1"
+                                    placeholder="Mín. 6 caracteres" minlength="6" maxlength="30"
+                                    style="border-radius:6px 0 0 6px; border-right:none;">
+                                <button type="button" onclick="togglePass('regPassword','ojoReg')" style="background:#1a1a1a;
+                                               border:1px solid rgba(201,168,76,0.2);
+                                               border-left:none;
+                                               border-radius:0 6px 6px 0;
+                                               color:rgba(240,236,224,0.5);
+                                               padding:0 14px; cursor:pointer;">
+                                    <i id="ojoReg" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <small style="color:rgba(240,236,224,0.4); font-size:0.75rem;">
+                                Entre 6 y 30 caracteres
+                            </small>
+                        </div>
+                        <button class="btn-gold w-100" onclick="hacerRegistro()">
+                            <i class="fa-solid fa-user-plus me-2"></i>Crear cuenta y continuar
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/reservar-pasos.js}"></script>
+
+    <script>
+        function togglePass(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

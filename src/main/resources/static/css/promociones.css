@@ -1,0 +1,208 @@
+.card-admin {
+    background: #111;
+    border: 1px solid rgba(201, 168, 76, 0.15);
+    border-radius: 12px;
+}
+
+.form-label-gold {
+    color: #c9a84c;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.input-dark {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.input-dark:focus {
+    background: #222;
+    border-color: #c9a84c;
+    color: #fff;
+    box-shadow: none;
+}
+
+.table-dark-custom {
+    background: #111;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.badge-active {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
+.badge-inactive {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.section-promos {
+    padding: 60px 0;
+    background: #0a0a0a;
+}
+
+.sec-eyebrow-promo {
+    color: var(--gold, #c9a84c);
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.sec-title-promo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    color: #f0ece0;
+    font-weight: 700;
+}
+
+.sec-line-promo {
+    width: 50px;
+    height: 2px;
+    background: var(--gold, #c9a84c);
+    margin: 15px auto 0;
+}
+
+/* Contenedor principal del Ticket */
+.promo-ticket {
+    background: linear-gradient(145deg, #121212 0%, #1c1a15 100%);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 260px;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.promo-ticket:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold, #c9a84c);
+}
+
+/* Cortes laterales de cupón tradicional */
+.ticket-notch {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #0a0a0a; /* Debe coincidir con el fondo de la sección */
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.notch-left {
+    left: -10px;
+    border-right: 1px solid rgba(201, 168, 76, 0.25);
+}
+
+.promo-ticket:hover .notch-left {
+    border-right-color: var(--gold, #c9a84c);
+}
+
+.notch-right {
+    right: -10px;
+    border-left: 1px solid rgba(201, 168, 76, 0.25);
+}
+
+.promo-ticket:hover .notch-right {
+    border-left-color: var(--gold, #c9a84c);
+}
+
+/* Cabecera del ticket */
+.badge-promo-type {
+    background: rgba(201, 168, 76, 0.1);
+    color: var(--gold, #c9a84c);
+    border: 1px solid rgba(201, 168, 76, 0.4);
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.promo-discount-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    color: var(--gold, #c9a84c);
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.off-text {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #f0ece0;
+    display: block;
+    text-align: right;
+    margin-top: 2px;
+}
+
+/* Cuerpo del ticket */
+.promo-ticket-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: #f0ece0;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.promo-ticket-desc {
+    color: rgba(240, 236, 224, 0.6);
+    font-size: 0.88rem;
+    font-weight: 300;
+    margin-bottom: 20px;
+    min-height: 40px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Línea discontinua */
+.ticket-divider {
+    border-top: 1px dashed rgba(201, 168, 76, 0.2);
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+/* Pie del ticket */
+.icon-gold {
+    color: var(--gold, #c9a84c);
+}
+
+.target-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #f0ece0;
+}
+
+.duration-label {
+    font-size: 0.75rem;
+    color: rgba(240, 236, 224, 0.4);
+    display: block;
+}
+
+.duration-label i {
+    font-size: 0.7rem;
+}
+
+.duration-date {
+    font-size: 0.8rem;
+    color: var(--gold, #c9a84c);
+    font-weight: 500;
+}
+

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Crear Cuenta | BarberPro</title>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #c9a84c; --gold-light: #e8c97a;
+            --bg: #0a0a0a; --bg-card: #111111;
+            --text: #f0ece0; --text-muted: rgba(240,236,224,0.5);
+            --border: rgba(201,168,76,0.2);
+        }
+        body {
+            background-color: var(--bg); color: var(--text);
+            font-family: 'Barlow', sans-serif;
+            min-height: 100vh; padding: 40px 20px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .registro-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 48px 40px;
+            width: 100%; max-width: 520px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .brand { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.8rem; text-align: center; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); text-align: center; font-size: 0.9rem; margin-bottom: 36px; }
+        .form-control {
+            background-color: #1a1a1a !important;
+            border: 1px solid rgba(201,168,76,0.2) !important;
+            color: var(--text) !important; padding: 12px 16px; border-radius: 8px;
+        }
+        .form-control:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.1) !important; }
+        .form-control::placeholder { color: var(--text-muted) !important; }
+        .form-control[readonly] { opacity: 0.7; }
+        .form-label { color: var(--text-muted); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.5px; }
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), #9a7a30);
+            color: #0a0a0a; font-weight: 700; border: none;
+            width: 100%; padding: 13px; border-radius: 8px; font-size: 1rem; transition: all 0.3s;
+        }
+        .btn-gold:hover { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #0a0a0a; }
+        .btn-search-dni {
+            background: linear-gradient(135deg, var(--gold), #9a7a30);
+            color: #0a0a0a; border: none; border-radius: 8px;
+            padding: 0 18px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn-search-dni:hover { opacity: 0.85; }
+        .btn-search-dni:disabled { opacity: 0.4; cursor: not-allowed; }
+        .divider { border-color: rgba(201,168,76,0.15) !important; }
+        .link-gold { color: var(--gold); text-decoration: none; }
+        .link-gold:hover { color: var(--gold-light); }
+        .alert-danger { background-color: rgba(231,76,60,0.12)!important; border-color:rgba(231,76,60,0.3)!important; color:#e74c3c!important; border-radius:8px; }
+        .alert-success { background-color: rgba(46,204,113,0.12)!important; border-color:rgba(46,204,113,0.3)!important; color:#2ecc71!important; border-radius:8px; }
+        .input-group { display:flex; gap:8px; }
+    </style>
+</head>
+<body>
+    <div class="registro-card">
+        <div class="brand"><i class="fa-solid fa-scissors me-2"></i>Barberia La Clasica</div>
+        <p class="subtitle">Crea tu cuenta y reserva tu cita</p>
+ 
+        <div th:if="${error}" class="alert alert-danger mb-4">
+            <i class="fa-solid fa-circle-xmark me-2"></i>
+            <span th:text="${error}"></span>
+        </div>
+ 
+        <form th:action="@{/cliente/registro}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="row g-3">
+ 
+                <!-- DNI con búsqueda -->
+                <div class="col-12">
+                    <label class="form-label">DNI</label>
+                    <div class="input-group">
+                        <input type="text" id="dniInput" name="dni" class="form-control"
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                               maxlength="8" placeholder="12345678" required>
+                        <button type="button" id="btnBuscar" class="btn-search-dni"
+                                onclick="buscarDni()">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                    <small style="color:var(--text-muted)">Ingresa tu DNI y presiona buscar</small>
+                </div>
+ 
+                <div class="col-md-6">
+                    <label class="form-label">NOMBRES</label>
+                    <input type="text" id="nombresInput" name="nombres"
+                           class="form-control" readonly required>
+                </div>
+ 
+                <div class="col-md-6">
+                    <label class="form-label">APELLIDOS</label>
+                    <input type="text" id="apellidosInput" name="apellidos"
+                           class="form-control" readonly required>
+                </div>
+ 
+                <div class="col-12">
+                    <label class="form-label">TELÉFONO</label>
+                    <input type="text" name="telefono" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                           maxlength="9" placeholder="987654321">
+                </div>
+ 
+                <div class="col-12">
+                    <label class="form-label">CORREO ELECTRÓNICO</label>
+                    <div class="input-group" style="gap: 0;">
+                        <input type="text" id="correoPrefix" class="form-control"
+                               placeholder="tunombre" required autocomplete="off"
+                               style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                        <span class="input-group-text bg-white text-dark fw-bold px-3 d-flex align-items-center"
+                              style="background-color:#ffffff !important; color:#212529 !important; border: 1px solid rgba(201,168,76,0.2) !important; border-top-left-radius: 0; border-bottom-left-radius: 0;">@gmail.com</span>
+                    </div>
+                    <input type="hidden" id="correoFinal" name="correo" required>
+                    <small style="color:var(--text-muted)">Solo se permiten cuentas @gmail.com</small>
+                </div>
+ 
+                <div class="col-12">
+                    <label class="form-label">CONTRASEÑA</label>
+                    <input type="password" name="passwordPlana" class="form-control"
+                           pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+                           title="Mínimo 8 caracteres con letras y números"
+                           placeholder="Mín. 8 caracteres" required>
+                    <small style="color:var(--text-muted)">Mínimo 8 caracteres con letras y números</small>
+                </div>
+ 
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn-gold">
+                        <i class="fa-solid fa-user-plus me-2"></i>Crear Cuenta
+                    </button>
+                </div>
+            </div>
+        </form>
+ 
+        <hr class="divider my-4">
+        <p class="text-center" style="color:var(--text-muted); font-size:0.9rem;">
+            ¿Ya tienes cuenta?
+            <a href="/cliente/login" class="link-gold fw-bold">Iniciar sesión</a>
+        </p>
+        <p class="text-center mt-2" style="font-size:0.85rem;">
+            <a href="/" class="link-gold">
+                <i class="fa-solid fa-arrow-left me-1"></i>Volver al inicio
+            </a>
+        </p>
+    </div>
+
+    <script th:src="@{/js/registro.js}"></script>
+</body>
+</html>

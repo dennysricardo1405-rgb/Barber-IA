@@ -1,0 +1,663 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow:wght@300;400;500;600&display=swap');
+
+:root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dark: #9a7a30;
+    --bg: #0a0a0a;
+    --bg-card: #111111;
+    --bg-section: #141414;
+    --text: #f0ece0;
+    --text-muted: rgba(240, 236, 224, 0.5);
+    --border: rgba(201, 168, 76, 0.2);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+}
+
+/* ════════════════════════════════════════
+   NAVBAR
+════════════════════════════════════════ */
+.navbar-custom {
+    background-color: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.navbar-brand-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--gold) !important;
+    letter-spacing: 2px;
+    text-decoration: none;
+}
+
+/* ════════════════════════════════════════
+   BOTONES
+════════════════════════════════════════ */
+.btn-gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: #0a0a0a !important;
+    font-weight: 700;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 6px;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-gold:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3);
+}
+
+.btn-outline-gold {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 10px 28px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-gold:hover {
+    background: var(--gold);
+    color: #0a0a0a;
+}
+
+/* ════════════════════════════════════════
+   AUTH CARDS
+════════════════════════════════════════ */
+.auth-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.form-control {
+    background-color: #1a1a1a !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    padding: 12px 16px;
+}
+
+.form-control:focus {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1) !important;
+}
+
+/* ════════════════════════════════════════
+   HERO — SLIDER DINÁMICO
+   Reemplaza la antigua sección .hero estática
+════════════════════════════════════════ */
+.hero-slider {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contenedor de capas de imágenes */
+.slider-bg-track {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+/* Cada slide: ocupa todo el espacio, invisible por defecto */
+.slide-bg-item {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    z-index: 0;
+}
+
+/* El slide activo es visible */
+.slide-bg-item.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+/* Imagen de fondo del slide */
+.slide-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Overlay oscuro para que el texto sea legible */
+.slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.30) 40%,
+            rgba(0, 0, 0, 0.70) 100%);
+}
+
+/* Contenido del hero (encima del slider) */
+.slider-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 20px 80px;
+    width: 100%;
+}
+
+/* Flechas de navegación */
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(201, 168, 76, 0.45);
+    color: var(--gold);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.25s, border-color 0.25s, transform 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-arrow:hover {
+    background: rgba(201, 168, 76, 0.25);
+    border-color: var(--gold);
+    transform: translateY(-50%) scale(1.08);
+}
+
+.slider-arrow-prev {
+    left: 20px;
+}
+
+.slider-arrow-next {
+    right: 20px;
+}
+
+/* Dots de navegación */
+.slider-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 36px;
+    justify-content: center;
+    align-items: center;
+}
+
+.slider-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(201, 168, 76, 0.4);
+    cursor: pointer;
+    transition: all 0.35s ease;
+}
+
+.slider-dot.active {
+    background: var(--gold);
+    width: 26px;
+    border-radius: 4px;
+    border-color: var(--gold);
+}
+
+/* Textos del hero (compatibles con el antiguo .hero) */
+.hero-subtitle {
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    transition: opacity 0.4s ease;
+}
+
+.hero-title span {
+    color: var(--gold);
+}
+
+.hero-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--gold);
+    margin: 0 auto 24px;
+    border-radius: 2px;
+}
+
+.hero-desc {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 540px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+    transition: opacity 0.4s ease;
+}
+
+/* ════════════════════════════════════════
+   SECCIÓN INFO CARDS
+════════════════════════════════════════ */
+.section-info {
+    padding: 80px 0;
+    background-color: var(--bg-section);
+}
+
+.info-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.info-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 1.4rem;
+    color: var(--gold);
+}
+
+/* ════════════════════════════════════════
+   SERVICIOS DESTACADOS
+════════════════════════════════════════ */
+.section-services {
+    padding: 100px 0;
+    background-color: var(--bg);
+}
+
+.text-gold-small {
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: var(--text);
+}
+
+.gold-line {
+    width: 60px;
+    height: 3px;
+    background-color: var(--gold);
+    margin-top: 15px;
+}
+
+.service-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    height: 350px;
+    border: 1px solid var(--border);
+}
+
+.service-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s;
+}
+
+.service-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px;
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.9), transparent);
+    color: white;
+}
+
+.service-item:hover img {
+    transform: scale(1.1);
+}
+
+/* ════════════════════════════════════════
+   FOOTER PREMIUM
+════════════════════════════════════════ */
+.footer-premium {
+    background-color: #080808;
+    padding: 80px 0 30px;
+    border-top: 1px solid var(--border);
+    color: #ffffff;
+}
+
+.footer-premium p,
+.footer-premium .footer-info li,
+.footer-premium .text-muted {
+    color: #ffffff !important;
+    opacity: 0.9;
+}
+
+.footer-links a {
+    color: #ffffff !important;
+    text-decoration: none;
+    transition: 0.3s;
+    opacity: 0.8;
+}
+
+.footer-links a:hover {
+    color: var(--gold) !important;
+    opacity: 1;
+    padding-left: 5px;
+}
+
+.footer-bottom p {
+    color: #ffffff !important;
+    opacity: 0.6;
+}
+
+.social-link {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.social-link:hover {
+    background: var(--gold);
+    color: #000;
+    border-color: var(--gold);
+}
+
+.text-gold {
+    color: var(--gold);
+}
+
+/* ════════════════════════════════════════
+   PRODUCTOS — FILTROS Y TARJETAS
+════════════════════════════════════════ */
+.btn-filtro-subcat {
+    background: transparent;
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    color: #f0ece0;
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 30px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.btn-filtro-subcat:hover,
+.btn-filtro-subcat.active {
+    background-color: #c9a84c;
+    border-color: #c9a84c;
+    color: #111;
+    box-shadow: 0 4px 15px rgba(201, 168, 76, 0.2);
+}
+
+.card-producto-premium {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-producto-premium:hover {
+    transform: translateY(-5px);
+    border-color: rgba(201, 168, 76, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.card-producto-premium .img-container {
+    width: 100%;
+    height: 200px;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+.card-producto-premium .img-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.card-producto-premium:hover .img-container img {
+    transform: scale(1.06);
+}
+
+.card-producto-premium .cuerpo-detalle {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.card-producto-premium .subcat-tag {
+    color: #c9a84c;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.card-producto-premium .prod-titulo {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.card-producto-premium .prod-desc-corta {
+    color: #a0a0a0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 36px;
+}
+
+.card-producto-premium .prod-precio {
+    color: #fff;
+    font-family: 'Barlow', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.btn-agregar-carrito {
+    background-color: transparent;
+    border: 1px solid #c9a84c;
+    color: #c9a84c;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-agregar-carrito:hover {
+    background-color: #c9a84c;
+    color: #111;
+}
+
+.section-services .row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ==========================================================================
+    NAVBAR RESPONSIVO ULTRA-CENTRADO Y ALINEADO
+   ========================================================================== */
+@media (max-width: 991px) {
+    .nb {
+        padding: 0 20px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        /* Mantiene logo a la izq y hamburguesa a la der */
+    }
+
+    .nb-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .nb-logo-text {
+        font-size: 1.25rem;
+        white-space: nowrap;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .nb-logo img {
+        height: 44px;
+        object-fit: contain;
+    }
+
+    /* Forzamos que el botón hamburguesa esté perfectamente centrado en su eje vertical */
+    .nb-hamburger {
+        display: block;
+        margin: 0;
+        padding: 8px 14px;
+        line-height: 1;
+        height: auto;
+        align-self: center;
+    }
+
+    /* El panel desplegable de acciones */
+    .nb-actions {
+        position: fixed;
+        top: 70px;
+        /* Exactamente la altura del nav */
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.98);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+        flex-direction: column;
+        align-items: center;
+        /* Centra todo el contenido del menú */
+        justify-content: center;
+        padding: 30px 24px;
+        gap: 20px;
+        display: none;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Cuando el menú se abre */
+    .nb-actions.show-menu {
+        display: flex !important;
+    }
+
+    .nb-nav-group {
+        flex-direction: column;
+        align-items: center;
+        /* Centra los botones internos del grupo */
+        width: 100%;
+        gap: 14px;
+    }
+
+    /* Botones premium expandidos y perfectamente centrados en móviles */
+    .nb-actions .btn-nb-gold,
+    .nb-actions .btn-nb-outline,
+    .nb-actions .dropdown,
+    .nb-actions .dropdown-toggle {
+        width: 100% !important;
+        max-width: 320px;
+        /* Evita que en tablets se estiren demasiado */
+        text-align: center;
+        justify-content: center;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .nb-dropdown .dropdown-menu {
+        position: static !important;
+        width: 100%;
+        max-width: 320px;
+        background: #141414;
+        transform: none !important;
+        box-shadow: none;
+        margin: 8px auto 0 auto;
+        text-align: center;
+    }
+
+    .nb-dropdown .dropdown-item {
+        text-align: center;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+    }
+}

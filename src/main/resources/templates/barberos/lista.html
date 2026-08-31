@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Barberos | BarberPro</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/barberos.css}">
+    <style>
+        /* Estilos específicos para acoplar la vista al diseño oscuro de La Clásica */
+        .bg-dark-table {
+            background-color: #1a1a1f !important;
+            /* Fondo de la card y footer */
+        }
+
+        /* Contenedor principal del buscador estilo image_d3ba3e.png */
+        .search-box-container {
+            background-color: #212126 !important;
+            border: 1px solid #2d2d35;
+            border-radius: 6px;
+            overflow: hidden;
+            height: 38px;
+        }
+
+        .search-icon {
+            color: #888894 !important;
+            font-size: 0.95rem;
+        }
+
+        .search-input {
+            box-shadow: none !important;
+            outline: none !important;
+            font-size: 0.9rem;
+        }
+
+        .search-input::placeholder {
+            color: #6c757d !important;
+            opacity: 0.8;
+        }
+
+        /* Forzar modo oscuro en la tabla y filas */
+        .table-dark-custom {
+            background-color: #1a1a1f !important;
+            color: #ffffff !important;
+        }
+
+        .table-dark-custom thead tr {
+            background-color: #212126 !important;
+            border-bottom: 2px solid #2d2d35;
+        }
+
+        .table-dark-custom th {
+            color: #888894 !important;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .table-dark-custom tbody tr {
+            border-bottom: 1px solid #2d2d35 !important;
+            background-color: #1a1a1f !important;
+        }
+
+        .table-dark-custom tbody tr:hover {
+            background-color: #212126 !important;
+        }
+
+        /* Botones y paginación */
+        .bg-dark-btn {
+            background-color: #212126 !important;
+            color: #ffffff !important;
+            transition: background 0.2s;
+        }
+
+        .bg-dark-btn:hover {
+            background-color: #2c2c35 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-naranja {
+            background-color: var(--naranja, #ff5722) !important;
+            color: white !important;
+        }
+
+        .page-item.disabled .page-link {
+            background-color: #141418 !important;
+            color: #44444c !important;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='barberos')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0" style="color:#ff6b2b">
+                        <i class="fa-solid fa-scissors me-2" style="color:#ff6b2b"></i>Gestión de Barberos
+                    </h2>
+                    <p class="text-muted m-0 small">Administra el equipo de barberos.</p>
+                </div>
+                <button class="btn btn-naranja shadow-sm fw-bold px-3 rounded-2" data-bs-toggle="modal"
+                    data-bs-target="#modalNuevo">
+                    <i class="fa-solid fa-plus me-2"></i> Nuevo Barbero
+                </button>
+            </div>
+
+            <!-- Alertas flash -->
+            <div th:if="${exito}"
+                class="alert alert-success alert-dismissible fade show bg-dark border-success text-success"
+                role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                <span th:text="${exito}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}"
+                class="alert alert-danger alert-dismissible fade show bg-dark border-danger text-danger" role="alert">
+                <i class="fa-solid fa-circle-xmark me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Buscador integrado estilo La Clásica -->
+            <div class="d-flex justify-content-end mb-4">
+                <form th:action="@{/admin/barberos}" method="get" class="col-md-4 col-12">
+                    <input type="hidden" name="size" th:value="${barberosPage.size}" />
+
+                    <div class="search-box-container d-flex align-items-center shadow-sm">
+                        <span class="search-icon px-3">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="search" th:value="${search}"
+                            class="form-control search-input bg-transparent text-white border-0"
+                            placeholder="Buscar barbero..." autocomplete="off">
+                        <a th:if="${search != null and !search.isEmpty()}"
+                            th:href="@{/admin/barberos(size=${barberosPage.size})}" class="btn border-0 text-muted px-3"
+                            title="Limpiar filtro">
+                            <i class="fa-solid fa-xmark"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabla -->
+            <div class="card shadow-sm border-0 rounded-3 bg-dark-table overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead class="text-uppercase small">
+                                <tr>
+                                    <th class="ps-4">Foto</th>
+                                    <th>Nombre</th>
+                                    <th>Especialidad</th>
+                                    <th>Teléfono</th>
+                                    <th>Día libre</th>
+                                    <th>Registro</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="b : ${barberos}">
+
+                                    <td class="ps-4">
+                                        <img th:if="${b.imagen != null and !b.imagen.isEmpty()}" th:src="${b.imagen}"
+                                            class="foto-barbero-tabla rounded-circle"
+                                            style="width: 45px; height: 45px; object-fit: cover;" alt="foto" />
+                                        <div th:unless="${b.imagen != null and !b.imagen.isEmpty()}"
+                                            class="foto-inicial"
+                                            th:text="${#strings.substring(b.nombre,0,1).toUpperCase()}">
+                                        </div>
+                                    </td>
+
+                                    <td class="fw-bold text-white" th:text="${b.nombre}"></td>
+                                    <td th:text="${b.especialidad ?: '—'}"></td>
+                                    <td th:text="${b.telefono ?: '—'}"></td>
+                                    <td>
+                                        <span class="badge-dia text-uppercase" th:text="${b.diaLibre}"></span>
+                                    </td>
+                                    <td th:text="${#temporals.format(b.fechaRegistro,'dd/MM/yyyy')}"></td>
+
+                                    <!-- Switch estado -->
+                                    <td>
+                                        <form th:action="@{/admin/barberos/{id}/estado(id=${b.id})}" method="post"
+                                            style="display:inline">
+                                            <input type="hidden" th:name="${_csrf.parameterName}"
+                                                th:value="${_csrf.token}" />
+                                            <label class="switch mb-0">
+                                                <input type="checkbox" th:checked="${b.estado == 1}"
+                                                    onchange="this.form.submit()" />
+                                                <span class="slider text-naranja"></span>
+                                            </label>
+                                        </form>
+                                    </td>
+
+                                    <!-- Botón editar -->
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning rounded-circle"
+                                            onclick="prepararEdicion(this)" th:data-id="${b.id}"
+                                            th:data-nombre="${b.nombre}" th:data-especialidad="${b.especialidad}"
+                                            th:data-telefono="${b.telefono}" th:data-dialib="${b.diaLibre}"
+                                            th:data-imagen="${b.imagen}" title="Editar">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                    </td>
+
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(barberos)}">
+                                    <td colspan="8" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-scissors fa-2x mb-2 d-block"></i>
+                                        No se encontraron barberos con los filtros aplicados.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pie de la Card: Paginación Estilo La Clásica -->
+                <div class="card-footer bg-dark-table border-top-0 py-3" th:if="${barberosPage.totalPages > 0}">
+                    <div
+                        class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-secondary small">
+
+                        <!-- Izquierda: Selector de ítems por página -->
+                        <div class="d-flex align-items-center gap-2">
+                            <span>Mostr ar</span>
+                            <select class="form-select form-select-sm bg-dark-input text-white border-secondary"
+                                style="width: auto;" onchange="location = this.value;">
+                                <option th:value="@{/admin/barberos(size=5, search=${search})}"
+                                    th:selected="${barberosPage.size == 5}">5</option>
+                                <option th:value="@{/admin/barberos(size=10, search=${search})}"
+                                    th:selected="${barberosPage.size == 10}">10</option>
+                                <option th:value="@{/admin/barberos(size=25, search=${search})}"
+                                    th:selected="${barberosPage.size == 25}">25</option>
+                            </select>
+                            <span>por página</span>
+                        </div>
+
+                        <!-- Centro: Botones de navegación -->
+                        <nav aria-label="Navegación">
+                            <ul class="pagination pagination-sm mb-0 align-items-center gap-1">
+
+                                <!-- Botón Anterior -->
+                                <li class="page-item" th:classappend="${barberosPage.first} ? 'disabled'">
+                                    <a class="page-link bg-dark-btn text-white border-0 px-3 py-1.5 rounded-2"
+                                        th:href="@{/admin/barberos(page=${barberosPage.number - 1}, size=${barberosPage.size}, search=${search})}">
+                                        &larr; Anterior
+                                    </a>
+                                </li>
+
+                                <!-- Página Actual (Marcador Naranja Fiel a tu Captura) -->
+                                <li class="page-item mx-1">
+                                    <span
+                                        class="page-link btn-naranja text-white border-0 px-3 py-1.5 rounded-2 fw-bold"
+                                        th:text="${barberosPage.number + 1}">1</span>
+                                </li>
+
+                                <!-- Botón Siguiente -->
+                                <li class="page-item" th:classappend="${barberosPage.last} ? 'disabled'">
+                                    <a class="page-link bg-dark-btn text-white border-0 px-3 py-1.5 rounded-2"
+                                        th:href="@{/admin/barberos(page=${barberosPage.number + 1}, size=${barberosPage.size}, search=${search})}">
+                                        Siguiente &rarr;
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+
+                        <!-- Derecha: Indicador de páginas -->
+                        <div class="text-muted">
+                            Página <span class="text-white fw-bold" th:text="${barberosPage.number + 1}">1</span>
+                            de <span class="text-white fw-bold" th:text="${barberosPage.totalPages}">1</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO BARBERO -->
+    <div class="modal fade" id="modalNuevo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow text-dark">
+                <div class="modal-header" style="background:var(--naranja)">
+                    <h5 class="modal-title fw-bold text-white">
+                        <i class="fa-solid fa-plus me-2"></i>Nuevo Barbero
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form th:action="@{/admin/barberos/guardar}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div class="modal-body p-4">
+
+                        <!-- Foto -->
+                        <div class="text-center mb-3">
+                            <div class="foto-preview-wrapper" onclick="document.getElementById('foto-nueva').click()"
+                                title="Clic para subir foto">
+                                <div id="placeholder-nueva" class="foto-placeholder-modal">
+                                    <i class="fa-solid fa-camera fa-2x"></i>
+                                    <small class="d-block mt-1">Subir foto</small>
+                                </div>
+                                <img id="preview-nueva" src="" alt="" class="d-none foto-preview-modal" />
+                            </div>
+                            <input type="file" id="foto-nueva" name="foto" accept="image/*" class="d-none"
+                                onchange="previewFoto(this,'preview-nueva','placeholder-nueva')" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase">Nombre completo *</label>
+                            <input type="text" name="nombre" class="form-control" required placeholder="" />
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-uppercase">Especialidad</label>
+                                <input type="text" name="especialidad" class="form-control" placeholder="" />
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-uppercase">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control" placeholder="" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase">Día libre</label>
+                            <select name="diaLibre" class="form-select">
+                                <option th:each="dia : ${dias}" th:value="${dia}" th:text="${dia}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-naranja px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR BARBERO -->
+    <div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow text-dark">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fa-solid fa-pen me-2"></i>Editar Barbero
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="form-editar" th:action="@{/admin/barberos/1/actualizar}" method="post"
+                    enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div class="modal-body p-4">
+
+                        <!-- Foto edición -->
+                        <div class="text-center mb-3">
+                            <div class="foto-preview-wrapper" onclick="document.getElementById('foto-editar').click()"
+                                title="Clic para cambiar foto">
+                                <img id="preview-editar" src="" alt="" class="foto-preview-modal" />
+                                <div id="placeholder-editar" class="foto-placeholder-modal d-none">
+                                    <i class="fa-solid fa-camera fa-2x"></i>
+                                    <small class="d-block mt-1">Cambiar foto</small>
+                                </div>
+                            </div>
+                            <input type="file" id="foto-editar" name="foto" accept="image/*" class="d-none"
+                                onchange="previewFoto(this,'preview-editar','placeholder-editar')" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase">Nombre completo *</label>
+                            <input type="text" name="nombre" id="edit-nombre" class="form-control" required />
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-uppercase">Especialidad</label>
+                                <input type="text" name="especialidad" id="edit-especialidad" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-uppercase">Teléfono</label>
+                                <input type="text" name="telefono" id="edit-telefono" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase">Día libre</label>
+                            <select name="diaLibre" id="edit-diaLibre" class="form-select">
+                                <option th:each="dia : ${dias}" th:value="${dia}" th:text="${dia}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning fw-bold px-4">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/barberos.js}"></script>
+</body>
+
+</html>

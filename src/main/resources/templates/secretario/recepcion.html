@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta th:name="_csrf" th:content="${_csrf.token}" />
+    <title>Sillas en Vivo | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/recepcion-premium.css}">
+    <style>
+        .tabla-productos-scroll {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .bg-dark-premium {
+            background-color: #121212 !important;
+        }
+
+        .text-gold {
+            color: #c9a84c !important;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='recepcion')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0 text-primary">Estaciones de Barberos</h2>
+                    <p class="text-muted m-0 small">Monitorea el estado de las sillas en tiempo real y gestiona las
+                        ventas en caliente.</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-dark border text-warning px-3 py-2 fw-semibold">
+                        <i class="fa-solid fa-circle-dot text-success animate-pulse me-2"></i> Recepción Activa
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-xl-3 col-lg-4 col-md-6" th:each="barbero : ${barberos}">
+                    <th:block th:with="
+            enSesionActiva=${enSesion.containsKey(barbero.id)},
+            tieneReserva=${reservasHoy.containsKey(barbero.id)},
+            reserva=${reservasHoy.get(barbero.id)}">
+
+                        <div class="card card-silla shadow-sm" th:classappend="${enSesionActiva} ? 'silla-ocupada' :
+                                 (${tieneReserva} ? 'silla-reservada' : 'silla-disponible')">
+                            <div class="card-body p-4 text-center">
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="small font-monospace text-muted fw-bold"
+                                        th:text="'SILLA #' + ${barbero.id}"></span>
+                                    <span class="badge-status font-monospace" th:classappend="${enSesionActiva} ? 'bg-ocupado' :
+                                             (${tieneReserva} ? 'bg-reservado' : 'bg-disponible')" th:text="${enSesionActiva} ? 'Atendiendo' :
+                                       (${tieneReserva} ? 'Con Reserva' : 'Disponible')">
+                                    </span>
+                                </div>
+
+                                <div class="avatar-container mb-3">
+                                    <img th:src="${barbero.imagen != null} ? ${barbero.imagen} : '/images/default-avatar.png'"
+                                        class="img-barbero shadow-sm" th:alt="${barbero.nombre}">
+                                </div>
+
+                                <h5 class="fw-bold text-white m-0 lh-base" th:text="${barbero.nombre}"></h5>
+                                <p class="text-gold small mb-3" th:text="${barbero.especialidad}"></p>
+
+                                <!-- ══ CON RESERVA Y SIN SESIÓN ══ -->
+                                <div th:if="${tieneReserva and !enSesionActiva}" class="d-flex flex-column gap-2">
+
+                                    <!-- Info reserva — SOLO aquí, dentro del th:if -->
+                                    <div class="alert alert-info py-2 px-3 mb-0 text-start small rounded-3">
+                                        <div class="fw-bold">
+                                            <i class="fa-solid fa-calendar-check me-1"></i>
+                                            <span th:text="${reserva?.cliente?.nombres != null ? 
+                                               reserva.cliente.nombres + ' ' + reserva.cliente.apellidos : 
+                                               'Cliente'}">
+                                            </span>
+                                        </div>
+                                        <div th:text="${reserva?.servicio?.nombre}"></div>
+                                        <div class="font-monospace" th:text="${reserva?.horaInicio != null ? 
+                                           #temporals.format(reserva.horaInicio,'HH:mm') : ''}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Atender reserva -->
+                                    <form th:action="@{/secretario/recepcion/atender-reserva/{id}(id=${barbero.id})}"
+                                        method="POST">
+                                        <input type="hidden" th:name="${_csrf.parameterName}"
+                                            th:value="${_csrf.token}" />
+                                        <button type="submit"
+                                            class="btn btn-primary w-100 rounded-pill fw-bold btn-sm py-2">
+                                            <i class="fa-solid fa-scissors me-1"></i> Atender Reserva
+                                        </button>
+                                    </form>
+
+                                    <!-- Walk-in con aviso -->
+                                    <button type="button"
+                                        class="btn btn-success w-100 rounded-pill fw-bold btn-sm py-2 btn-ocupar-con-reserva"
+                                        th:data-id="${barbero.id}" th:data-nombre="${barbero.nombre}"
+                                        th:data-hora-reserva="${reserva?.horaInicio != null ? 
+                                                        #temporals.format(reserva.horaInicio,'HH:mm') : ''}">
+                                        <i class="fa-solid fa-chair me-1"></i> Iniciar Servicio
+                                    </button>
+                                </div>
+
+                                <!-- ══ SIN RESERVA Y SIN SESIÓN ══ -->
+                                <button th:if="${!tieneReserva and !enSesionActiva}" type="button"
+                                    class="btn btn-success w-100 rounded-pill fw-bold btn-sm py-2 btn-ocupar"
+                                    th:data-id="${barbero.id}" th:data-nombre="${barbero.nombre}">
+                                    <i class="fa-solid fa-chair me-1"></i> Iniciar Servicio
+                                </button>
+
+                                <!-- ══ EN SESIÓN ACTIVA ══ -->
+                                <button th:if="${enSesionActiva}" type="button"
+                                    class="btn btn-warning text-dark w-100 rounded-pill fw-bold btn-sm py-2 btn-gestionar"
+                                    th:data-id="${barbero.id}" th:data-nombre="${barbero.nombre}">
+                                    <i class="fa-solid fa-basket-shopping me-1"></i> Gestionar Cuenta
+                                </button>
+
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- ══ RESERVAS WEB PARA HOY ══════════════════════════════════ -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0">
+                        <i class="fa-solid fa-calendar-days me-2 text-warning"></i> Reservas Web para Hoy
+                    </h5>
+                    <span class="badge bg-secondary px-3 py-2 font-monospace" th:text="${totalItems} + ' registros'">0
+                        registros</span>
+                </div>
+
+                <div class="table-responsive rounded-3 border border-secondary border-opacity-25"
+                    style="background:#0f0f0f;">
+                    <table class="table table-dark table-hover align-middle mb-0 small">
+                        <thead class="text-uppercase text-muted" style="font-size:0.72rem;">
+                            <tr>
+                                <th>Hora</th>
+                                <th>Cliente</th>
+                                <th>Barbero</th>
+                                <th>Servicio</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${reservasPage == null or reservasPage.totalElements == 0}">
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-calendar-xmark fa-2x mb-2 d-block"></i>
+                                    No hay reservas web para hoy.
+                                </td>
+                            </tr>
+                            <tr th:each="cita : ${reservasPage}">
+                                <td class="font-monospace fw-bold text-warning"
+                                    th:text="${#temporals.format(cita.horaInicio,'HH:mm')}"></td>
+                                <td th:text="${cita.cliente?.nombres + ' ' + cita.cliente?.apellidos}"></td>
+                                <td th:text="${cita.barbero?.nombre}"></td>
+                                <td th:text="${cita.servicio?.nombre}"></td>
+                                <td class="text-end font-monospace text-success fw-bold">
+                                    <small
+                                        th:if="${promoHelper.calcularPrecioServicio(cita.servicio) < cita.servicio?.precio?.doubleValue()}"
+                                        style="text-decoration: line-through; color: rgba(255,255,255,0.3); font-size: 0.75rem; margin-right: 5px;"
+                                        th:text="'S/ ' + ${cita.servicio?.precio}"></small>
+                                    <span
+                                        th:text="'S/ ' + ${#numbers.formatDecimal(promoHelper.calcularPrecioServicio(cita.servicio), 1, 2)}"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <nav th:if="${totalPages > 1}" class="mt-3">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link bg-dark border-secondary text-white"
+                                th:href="@{/secretario/recepcion(page=${currentPage - 1}, size=${size})}">
+                                &laquo;
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link bg-dark border-secondary text-white"
+                                th:href="@{/secretario/recepcion(page=${i}, size=${size})}" th:text="${i + 1}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link bg-dark border-secondary text-white"
+                                th:href="@{/secretario/recepcion(page=${currentPage + 1}, size=${size})}">
+                                &raquo;
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MODAL: ABRIR SILLA
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="modalOcuparSilla" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 text-white" style="background:#0f0f0f;">
+
+                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                    <div>
+                        <h5 class="modal-title fw-bold text-success mb-0">
+                            <i class="fa-solid fa-circle-play me-2"></i>
+                            Abrir Estación:
+                            <span id="modalOcuparBarberoNombre" class="text-white"></span>
+                        </h5>
+                        <p class="text-muted small mb-0 mt-1">Selecciona el servicio a realizar</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form th:action="@{/secretario/recepcion/ocupar-silla}" method="POST">
+                    <div class="modal-body px-4 py-3">
+                        <input type="hidden" id="modalOcuparBarberoId" name="barberoId">
+
+                        <div class="mb-4">
+                            <label class="form-label small text-uppercase fw-bold text-warning mb-2">
+                                <i class="fa-solid fa-scissors me-1"></i> Servicio a Realizar
+                            </label>
+                            <select class="form-select border-0 text-white fw-semibold" style="background:#1e1e1e;"
+                                name="servicioId" id="selectServicio" required>
+                                <option value="" disabled selected>— Elige el corte o servicio —</option>
+                                <option th:each="ser : ${servicios}" th:value="${ser.id}"
+                                    th:text="${ser.nombre + '  ·  S/ ' + ser.precio}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 px-4 pb-4">
+                        <button type="button" class="btn btn-sm btn-outline-secondary text-white rounded-pill px-4"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success fw-bold px-5 rounded-pill">
+                            <i class="fa-solid fa-play me-1"></i> Abrir Silla
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MODAL: GESTIONAR CUENTA
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="modalGestionarSilla" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark-premium border-secondary text-white">
+
+                <div class="modal-header border-secondary-subtle">
+                    <h5 class="modal-title fw-bold text-warning">
+                        <i class="fa-solid fa-basket-shopping me-2"></i>
+                        Detalle de Atención:
+                        <span id="modalGestionarBarberoNombre" class="text-white"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="consumoBarberoId">
+
+                    <div class="row g-3">
+
+                        <!-- ── Columna izquierda ─────────────────────── -->
+                        <div class="col-lg-6">
+
+                            <!-- Servicio -->
+                            <div class="mb-3 p-2 rounded-3 border border-warning border-opacity-25"
+                                style="background:#1a1a1a;">
+                                <span class="small text-warning fw-bold text-uppercase">
+                                    <i class="fa-solid fa-scissors me-1"></i> Servicio
+                                </span>
+                                <div class="text-white fw-bold mt-1" id="labelServicioActual">—</div>
+                            </div>
+
+                            <!-- Cliente -->
+                            <div class="mb-3 p-3 rounded-3" style="background:#1a1a1a;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-bold text-uppercase">
+                                        <i class="fa-solid fa-user me-1"></i> Cliente
+                                    </span>
+                                    <div id="clienteGestionInfo" class="text-success small fw-bold"
+                                        style="display:none;">
+                                        <i class="fa-solid fa-check me-1"></i>
+                                        <span id="clienteGestionNombre"></span>
+                                        <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2"
+                                            onclick="limpiarClienteGestion()">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Tabs -->
+                                <div class="d-flex gap-2 mb-3">
+                                    <button type="button" id="gBtnExistente"
+                                        class="btn btn-sm fw-bold px-3 rounded-pill btn-warning text-dark"
+                                        onclick="switchGestionTab('existente')">
+                                        <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
+                                    </button>
+                                    <button type="button" id="gBtnLibre"
+                                        class="btn btn-sm fw-bold px-3 rounded-pill btn-outline-secondary text-white"
+                                        onclick="switchGestionTab('libre')">
+                                        <i class="fa-solid fa-person me-1"></i> Sin registro
+                                    </button>
+                                </div>
+
+                                <!-- Tab: buscar existente -->
+                                <div id="gTabExistente">
+                                    <div class="input-group input-group-sm mb-2">
+                                        <span class="input-group-text bg-dark border-secondary text-muted">
+                                            <i class="fa-solid fa-id-card"></i>
+                                        </span>
+                                        <input type="text" id="buscarDniGestion"
+                                            class="form-control border-secondary text-white font-monospace"
+                                            style="background:#2a2a2a;" placeholder="Escribe el DNI..." maxlength="8"
+                                            oninput="buscarClienteGestion(this.value)">
+                                    </div>
+                                    <div id="resultadoBusquedaGestion" class="rounded-2" style="display:none;"></div>
+                                </div>
+
+                                <!-- Tab: cliente nuevo -->
+                                <div id="gTabNuevo" style="display:none;">
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-12">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" id="gNuevoDni"
+                                                    class="form-control border-secondary text-white font-monospace"
+                                                    style="background:#2a2a2a;" placeholder="DNI (8 dígitos)"
+                                                    maxlength="8"
+                                                    oninput="if(this.value.length===8) buscarDniGestionNuevo()">
+                                                <button type="button" class="btn btn-outline-warning btn-sm"
+                                                    onclick="buscarDniGestionNuevo()">
+                                                    <i class="fa-solid fa-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="text" id="gNuevoNombres"
+                                                class="form-control form-control-sm border-secondary text-white"
+                                                style="background:#2a2a2a;" placeholder="Nombres">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="text" id="gNuevoApellidos"
+                                                class="form-control form-control-sm border-secondary text-white"
+                                                style="background:#2a2a2a;" placeholder="Apellidos">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="text" id="gNuevoTelefono"
+                                                class="form-control form-control-sm border-secondary text-white"
+                                                style="background:#2a2a2a;" placeholder="Teléfono">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="email" id="gNuevoCorreo"
+                                                class="form-control form-control-sm border-secondary text-white"
+                                                style="background:#2a2a2a;" placeholder="Correo (obligatorio) *">
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-warning py-1 px-2 small mb-2">
+                                        <i class="fa-solid fa-key me-1"></i>
+                                        Contraseña automática: <strong>B + DNI</strong>
+                                    </div>
+                                    <button type="button"
+                                        class="btn btn-warning text-dark btn-sm w-100 fw-bold rounded-pill"
+                                        onclick="registrarYAsociarCliente()">
+                                        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Asociar
+                                    </button>
+                                    <div id="gNuevoClienteMsg" class="mt-2 small" style="display:none;"></div>
+                                </div>
+
+                                <!-- Tab: sin registro -->
+                                <div id="gTabLibre" style="display:none;">
+                                    <p class="text-muted small mb-0 text-center py-2">
+                                        <i class="fa-solid fa-person fa-lg me-2"></i>
+                                        Se atenderá sin asociar cliente.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Adiciones: Servicios y Productos -->
+                            <h6 class="fw-bold text-uppercase small text-warning mb-2">
+                                <i class="fa-solid fa-plus-circle me-1"></i> Agregar a la Cuenta
+                            </h6>
+                            <div class="d-flex gap-2 mb-3">
+                                <button type="button" class="btn btn-warning text-dark fw-bold btn-sm py-2 px-3 flex-fill rounded-pill"
+                                    onclick="abrirModalAgregarServicios()">
+                                    <i class="fa-solid fa-scissors me-1"></i> + Agregar Servicio Extra
+                                </button>
+                                <button type="button" class="btn btn-outline-warning text-white fw-bold btn-sm py-2 px-3 flex-fill rounded-pill"
+                                    onclick="abrirModalAgregarProductos()">
+                                    <i class="fa-solid fa-box-open me-1"></i> + Agregar Producto
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ── Columna derecha ─────────────────────── -->
+                        <div class="col-lg-6">
+                            <h6 class="fw-bold text-uppercase small text-muted mb-2">
+                                <i class="fa-solid fa-receipt me-1 text-gold"></i> Consumos y Cuenta
+                            </h6>
+                            <div class="table-responsive rounded-3 border border-secondary border-opacity-50"
+                                style="min-height:200px;">
+                                <table class="table table-dark table-hover align-middle mb-0 small">
+                                    <thead class="table-light text-dark text-uppercase font-monospace"
+                                        style="font-size:0.72rem;">
+                                        <tr>
+                                            <th>Descripción</th>
+                                            <th class="text-center">Cant.</th>
+                                            <th class="text-end">Precio U.</th>
+                                            <th class="text-end">Subtotal</th>
+                                            <th class="text-center">Quitar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaDetalleConsumos"></tbody>
+                                </table>
+                            </div>
+                            <div
+                                class="p-3 bg-black bg-opacity-60 rounded-3 border border-secondary border-opacity-25 mt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="m-0 fw-bold text-muted text-uppercase small">Total Acumulado:</h6>
+                                    <h4 class="m-0 fw-bold text-success font-monospace" id="textoTotalSilla">S/ 0.00
+                                    </h4>
+                                </div>
+                                <div id="notificacionDescuentoCaja" class="text-end small text-warning"
+                                    style="display:none; font-size: 0.78rem;">
+                                    <i class="fa-solid fa-tags me-1"></i> Descuento de promoción aplicado en caja
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-3 p-3 rounded-3 border border-secondary border-opacity-25" style="background:#1a1a1a;">
+                    <h6 class="fw-bold text-uppercase small text-warning mb-3">
+                        <i class="fa-solid fa-credit-card me-1"></i> Método de Pago Final en Caja
+                    </h6>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-sm fw-bold px-3 rounded-pill flex-fill btn-metodo active"
+                            data-metodo="EFECTIVO" onclick="seleccionarMetodoPago('EFECTIVO')">
+                            <i class="fa-solid fa-money-bill me-1"></i>Efectivo
+                        </button>
+                        <button type="button" class="btn btn-sm fw-bold px-3 rounded-pill flex-fill btn-metodo"
+                            data-metodo="YAPE" onclick="seleccionarMetodoPago('YAPE')"
+                            style="background:rgba(108,30,168,0.15); border:1px solid rgba(108,30,168,0.4); color:#a855f7;">
+                            <i class="fa-solid fa-mobile-screen me-1"></i>Yape
+                        </button>
+                        <button type="button" class="btn btn-sm fw-bold px-3 rounded-pill flex-fill btn-metodo"
+                            data-metodo="MIXTO" onclick="seleccionarMetodoPago('MIXTO')"
+                            style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#aaa;">
+                            <i class="fa-solid fa-shuffle me-1"></i>Mixto
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="selectMetodoPago" value="EFECTIVO">
+
+                    <div id="anticipoYapeInfo"
+                        style="display:none; background:rgba(108,30,168,0.12); color:#a855f7; border:1px solid rgba(108,30,168,0.25); border-radius:8px; padding:8px 12px;"
+                        class="small mb-3">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        <span id="anticipoYapeTexto"></span>
+                    </div>
+
+                    <div class="mb-3 p-2 rounded-2" id="panelDesgloseNeto"
+                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Abono de Reserva Web:</span>
+                            <span>S/ <span id="lblAnticipoWeb">0.00</span></span>
+                        </div>
+                        <div class="d-flex justify-content-between small fw-bold text-white mb-1">
+                            <span>Monto Neto Restante por Pagar:</span>
+                            <span style="color: #2ecc71;">S/ <span id="lblNetoPorCobrar">0.00</span></span>
+                        </div>
+                    </div>
+
+                    <div id="panelYape" style="display:none;">
+                        <div class="mb-2">
+                            <label class="small text-muted mb-1 d-block">Monto a Cancelar por Yape (S/)</label>
+                            <input type="number" id="inputMontoYape" step="0.50" min="0"
+                                class="form-control form-control-sm bg-dark border-secondary text-white"
+                                placeholder="0.00" oninput="actualizarDesglosePago()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted mb-1 d-block">Código operación Yape (opcional)</label>
+                            <input type="text" id="inputCodigoYape" maxlength="20"
+                                class="form-control form-control-sm bg-dark border-secondary text-white font-monospace"
+                                placeholder="Ej: 10416701">
+                        </div>
+                    </div>
+
+                    <div id="labelEfectivoRestante" class="small fw-bold mt-2 p-2 rounded-2"
+                        style="display:none; background:rgba(46,204,113,0.1); color:#2ecc71; border:1px solid rgba(46,204,113,0.2);">
+                    </div>
+                </div>
+
+                <div class="modal-footer border-secondary-subtle justify-content-between">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-white"
+                        data-bs-dismiss="modal">Cerrar Ventana</button>
+                    <button type="button" id="btnLiberarSillaFinal"
+                        class="btn btn-sm btn-danger fw-bold px-4 rounded-pill shadow" onclick="finalizarAtencion()">
+                        <i class="fa-solid fa-cash-register me-1"></i> Procesar Pago y Liberar Silla
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalResumenNota" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 text-white" style="background:#0f0f0f;">
+                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                    <h5 class="modal-title fw-bold text-success">
+                        <i class="fa-solid fa-circle-check me-2"></i>
+                        Nota de Venta <span id="resumenNotaId"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        onclick="window.location.href='/secretario/recepcion'"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div style="background:#1a1a1a;border-radius:8px;padding:10px">
+                                <div class="text-muted small">Cliente</div>
+                                <div class="text-white fw-bold small" id="resumenNotaCliente"></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background:#1a1a1a;border-radius:8px;padding:10px">
+                                <div class="text-muted small">Barbero</div>
+                                <div class="text-white fw-bold small" id="resumenNotaBarbero"></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background:#1a1a1a;border-radius:8px;padding:10px">
+                                <div class="text-muted small">Fecha</div>
+                                <div class="text-white fw-bold small" id="resumenNotaFecha"></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background:#1a1a1a;border-radius:8px;padding:10px">
+                                <div class="text-muted small">Total</div>
+                                <div class="text-success fw-bold" id="resumenNotaTotal"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div style="background:#1a1a1a;border-radius:8px;padding:10px">
+                                <div class="text-muted small">Pago</div>
+                                <div class="fw-bold small" id="resumenNotaPago">—</div>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-dark table-sm align-middle mb-0 small">
+                        <thead>
+                            <tr class="text-muted text-uppercase" style="font-size:0.7rem">
+                                <th>Descripción</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resumenNotaDetalles"></tbody>
+                    </table>
+                </div>
+
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-success fw-bold w-100 rounded-pill"
+                        onclick="window.location.href='/secretario/recepcion'">
+                        <i class="fa-solid fa-check me-2"></i> Listo
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MODAL: AGREGAR SERVICIO EXTRA A LA SILLA
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="modalAgregarServicio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 text-white" style="background:#121212; border: 1px solid rgba(201,168,76,0.3) !important;">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold text-warning">
+                        <i class="fa-solid fa-scissors me-2"></i> Seleccionar Servicio Adicional
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <input type="text" class="form-control bg-dark text-white border-secondary rounded-pill px-3"
+                            placeholder="🔍 Buscar servicio por nombre..." oninput="filtrarServiciosModal(this.value)">
+                    </div>
+                    <div class="row g-3" id="contenedorServiciosModal">
+                        <div th:each="ser : ${servicios}" class="col-md-6 tarjeta-servicio-modal" th:data-id="${ser.id}" th:data-nombre="${ser.nombre}">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="fw-bold text-white fs-6" th:text="${ser.nombre}"></span>
+                                        <span class="badge bg-secondary text-white font-monospace"
+                                            th:text="'S/ ' + ${#numbers.formatDecimal(ser.precio, 1, 2)}"></span>
+                                    </div>
+                                    <small class="text-muted d-block mb-2" th:text="${ser.descripcion ?: 'Servicio profesional de barbería'}"></small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-warning w-100 rounded-pill fw-bold mt-2"
+                                    th:attr="onclick='agregarServicioDirecto(\'' + ${ser.id} + '\')'">
+                                    <i class="fa-solid fa-plus me-1"></i> Añadir a la Silla
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MODAL: AGREGAR PRODUCTO A LA SILLA
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="modalAgregarProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 text-white" style="background:#121212; border: 1px solid rgba(201,168,76,0.3) !important;">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold text-warning">
+                        <i class="fa-solid fa-box-open me-2"></i> Catálogo de Productos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <input type="text" class="form-control bg-dark text-white border-secondary rounded-pill px-3"
+                            placeholder="🔍 Buscar producto..." oninput="filtrarProductosModal(this.value)">
+                    </div>
+                    <div class="row g-3" id="contenedorProductosModal">
+                        <div th:each="prod : ${productos}" class="col-md-6 tarjeta-producto-modal" th:data-nombre="${prod.nombre}">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="fw-bold text-white fs-6" th:text="${prod.nombre}"></span>
+                                        <span class="badge bg-secondary text-white font-monospace"
+                                            th:text="'S/ ' + ${#numbers.formatDecimal(prod.precioVenta, 1, 2)}"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted mb-2">
+                                        <span>Categoría: <strong class="text-white" th:text="${prod.categoria != null ? prod.categoria.nombre : 'General'}"></strong></span>
+                                        <span>Stock: <strong class="text-warning" th:text="${prod.stock}"></strong></span>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 mt-2">
+                                    <input type="number" th:id="'cantModal-' + ${prod.id}" class="form-control form-control-sm bg-dark text-white border-secondary text-center"
+                                        style="width: 70px;" value="1" min="1">
+                                    <button type="button" class="btn btn-sm btn-warning text-dark flex-fill rounded-pill fw-bold"
+                                        th:attr="onclick='agregarProductoModalDirecto(\'' + ${prod.id} + '\')'">
+                                        <i class="fa-solid fa-plus me-1"></i> Añadir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/recepcion-dinamica.js}"></script>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Pago con Yape | Barbería La Clásica</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/reserva-pago.css}">
+</head>
+
+<body>
+
+    <div class="pago-header">
+        <div class="brand"><i class="fa-solid fa-scissors me-2"></i>Barbería La Clásica</div>
+    </div>
+
+    <div class="pago-container">
+
+        <div th:if="${error}" class="alert-error">
+            <i class="fa-solid fa-circle-xmark me-2"></i><span th:text="${error}"></span>
+        </div>
+
+        <div class="row g-4">
+            <!-- Columna izquierda: Resumen + Yape -->
+            <div class="col-md-5">
+                <div class="section-card">
+                    <div class="section-title"><i class="fa-solid fa-receipt me-2"></i>Tu reserva</div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Servicio</span>
+                        <span class="resumen-value" th:text="${servicio?.nombre}">—</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Barbero</span>
+                        <span class="resumen-value" th:text="${barbero?.nombre}">—</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Fecha</span>
+                        <span class="resumen-value" th:text="${fecha}">—</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Hora</span>
+                        <span class="resumen-value" th:text="${hora}">—</span>
+                    </div>
+
+                    <div class="resumen-row mt-2"
+                        style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 12px;">
+                        <span class="resumen-label">Monto Final</span>
+                        <div>
+                            <span th:if="${precioFinalServicio != null and servicio != null and precioFinalServicio < servicio.precio.doubleValue()}"
+                                style="text-decoration: line-through; color: rgba(255,255,255,0.3); font-size: 0.85rem; margin-right: 8px;"
+                                th:text="'S/. ' + ${servicio?.precio}"></span>
+
+                            <span class="resumen-value resumen-total"
+                                th:text="'S/. ' + ${#numbers.formatDecimal(precioFinalServicio != null ? precioFinalServicio : (servicio != null ? servicio.precio.doubleValue() : 0), 1, 2)}">S/. 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="yape-box"
+                    style="background: linear-gradient(135deg, #6c1ea8 0%, #4a0e7a 100%); border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+                    <div class="yape-title" style="font-weight: 700; color: #fff; font-size: 1.2rem;"><i
+                            class="fa-solid fa-mobile-screen-button me-2"></i>Paga con Yape</div>
+
+                    <div class="yape-sub" style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 8px 0 16px;"
+                        th:text="'Transfiere el 25% (S/. ' + ${#numbers.formatDecimal((precioFinalServicio != null ? precioFinalServicio : (servicio != null ? servicio.precio.doubleValue() : 0)) * 0.25, 1, 2)} + ') del monto total para confirmar tu cita'">
+                        Transfiere el 25% para confirmar tu cita
+                    </div>
+
+                    <div class="yape-numero"
+                        style="background: #fff; color: #6c1ea8; font-size: 1.3rem; font-weight: 700; padding: 8px 20px; border-radius: 8px; display: inline-block; letter-spacing: 1px; margin-bottom: 16px;">
+                        987 654 321</div>
+
+                    <div class="yape-qr"
+                        style="background: #fff; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 12px;">
+                        <i class="fa-solid fa-qrcode" style="font-size:5rem; color:#6c1ea8;"></i>
+                    </div>
+                    <div class="yape-nombre" style="font-size: 0.9rem; font-weight: 600; opacity: 0.95;">Barbería La
+                        Clásica</div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Subir comprobante -->
+            <div class="col-md-7">
+                <div class="section-card">
+                    <div class="section-title"><i class="fa-solid fa-image me-2"></i>Sube tu comprobante</div>
+                    <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">
+                        Luego de yapear, sube la captura de pantalla del comprobante.
+                        Tu cita quedará en estado <span class="badge-pendiente">PENDIENTE</span> hasta que el secretario
+                        la confirme.
+                    </p>
+
+                    <form th:action="@{/cliente/reserva/confirmar}" method="post" enctype="multipart/form-data"
+                        id="formPago">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="servicioId" th:value="${servicioId}" />
+                        <input type="hidden" name="barberoId" th:value="${barberoId}" />
+                        <input type="hidden" name="fecha" th:value="${fecha}" />
+                        <input type="hidden" name="hora" th:value="${hora}" />
+                        <input type="file" id="fileInput" name="comprobante" accept="image/*"
+                            onchange="previewFile(event)">
+
+                        <div class="upload-zone" onclick="document.getElementById('fileInput').click()"
+                            ondragover="event.preventDefault(); this.classList.add('dragover')"
+                            ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+                            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                            <p><strong>Haz clic aquí</strong> o arrastra tu imagen</p>
+                            <p class="mt-1" style="font-size:0.8rem;">PNG, JPG, JPEG — máx. 5MB</p>
+                            <img id="previewImg" src="" alt="Comprobante">
+                        </div>
+
+                        <div class="mt-4 d-flex gap-3">
+                            <a href="/reservar" class="btn-outline text-center text-decoration-none">
+                                <i class="fa-solid fa-arrow-left me-1"></i>Volver
+                            </a>
+                            <button type="submit" class="btn-gold" id="btnConfirmar" disabled>
+                                <i class="fa-solid fa-calendar-check me-2"></i>Confirmar mi reserva
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="section-card" style="background: rgba(201,168,76,0.05);">
+                    <div class="d-flex gap-3 align-items-start">
+                        <i class="fa-solid fa-circle-info"
+                            style="color:var(--gold); margin-top:2px; flex-shrink:0;"></i>
+                        <div>
+                            <div style="font-weight:600; margin-bottom:6px;">¿Qué pasa después?</div>
+                            <ol
+                                style="color:var(--text-muted); font-size:0.85rem; padding-left:16px; margin:0; line-height:1.8;">
+                                <li>Tu reserva queda en estado <strong style="color:var(--gold);">Pendiente</strong>
+                                </li>
+                                <li>El secretario revisa tu comprobante</li>
+                                <li>Recibirás un <strong style="color:Red">correo electrónico</strong> confirmando tu
+                                    cita</li>
+                                <li>¡Listo! Solo preséntate el día y hora elegidos</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { alert('La imagen no debe superar 5MB'); return; }
+            const img = document.getElementById('previewImg');
+            img.src = URL.createObjectURL(file);
+            img.style.display = 'block';
+            document.getElementById('btnConfirmar').disabled = false;
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            document.getElementById('fileInput').files = dt.files;
+            previewFile({ target: { files: [file] } });
+        }
+    </script>
+</body>
+
+</html>

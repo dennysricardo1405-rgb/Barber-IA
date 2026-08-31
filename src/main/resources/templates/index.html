@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <title
+        th:text="${config != null and config['nombre_barberia'] != null ? config['nombre_barberia'] + ' — La Clásica' : 'BarberPro — La Clásica'}">
+        BarberPro — La Clásica</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style-public.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/promociones.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+</head>
+
+<body>
+
+    <!-- ══ NAVBAR ══ -->
+    <nav class="nb">
+        <!-- Logo e Icono en una sola fila -->
+        <a href="/" class="nb-logo">
+            <th:block
+                th:if="${config != null and config['logo_url'] != null and !#strings.isEmpty(config['logo_url'])}">
+                <img th:src="${config['logo_url']}" alt="Logo">
+            </th:block>
+            <th:block
+                th:unless="${config != null and config['logo_url'] != null and !#strings.isEmpty(config['logo_url'])}">
+                <span class="nb-logo-text">
+                    <i class="fa-solid fa-scissors me-2 icon-gold"></i>
+                    <span
+                        th:text="${config != null and config['nombre_barberia'] != null ? config['nombre_barberia'] : 'Barbería'}">Barbería</span>
+                </span>
+            </th:block>
+        </a>
+
+        <!-- Botón Hamburguesa (Solo visible en móviles) -->
+        <button class="nb-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Abrir menú">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <!-- Bloque de acciones (Se convierte en panel lateral en celulares) -->
+        <div class="nb-actions" id="navbarActions">
+
+            <!-- Redes en navbar -->
+            <div class="nb-socials">
+                <a th:if="${config != null and config['facebook_url'] != null and !#strings.isEmpty(config['facebook_url'])}"
+                    th:href="${config['facebook_url']}" class="nb-social-link" target="_blank"><i
+                        class="fa-brands fa-facebook-f"></i></a>
+                <a th:if="${config != null and config['instagram_url'] != null and !#strings.isEmpty(config['instagram_url'])}"
+                    th:href="${config['instagram_url']}" class="nb-social-link" target="_blank"><i
+                        class="fa-brands fa-instagram"></i></a>
+                <a th:if="${config != null and config['whatsapp_url'] != null and !#strings.isEmpty(config['whatsapp_url'])}"
+                    th:href="${config['whatsapp_url']}" class="nb-social-link" target="_blank"><i
+                        class="fa-brands fa-whatsapp"></i></a>
+            </div>
+
+            <!-- Opciones para Clientes Logueados -->
+            <div sec:authorize="hasRole('CLIENTE')" class="nb-nav-group">
+                <a href="/reservar" class="btn-nb-gold"><i class="fa-solid fa-calendar-check"></i>Reservar</a>
+                <a href="/#productos" class="btn-nb-outline"><i class="fa-solid fa-bag-shopping"></i>Catálogo</a>
+
+                <button class="btn-nb-outline position-relative" onclick="irAlCarrito()">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="carritoCount" class="badge-carrito-count">0</span>
+                </button>
+
+                <div class="dropdown nb-dropdown">
+                    <button class="btn-nb-outline dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-circle-user"></i> <span sec:authentication="name">Mi cuenta</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/cliente/mis-citas"><i
+                                    class="fa-solid fa-clock-rotate-left me-2 icon-gold"></i>Mis Citas</a></li>
+                        <li><a class="dropdown-item" href="/cliente/mis-pedidos"><i
+                                    class="fa-solid fa-box me-2 icon-gold"></i>Mis Pedidos</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="px-2">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="dropdown-item text-danger"><i
+                                        class="fa-solid fa-right-from-bracket me-2"></i>Cerrar Sesión</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Opciones para Anónimos -->
+            <div sec:authorize="isAnonymous()" class="nb-nav-group">
+                <button class="btn-nb-outline position-relative" onclick="abrirCarrito()">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="carritoCountAnon" class="badge-carrito-count">0</span>
+                </button>
+                <a href="/cliente/login" class="btn-nb-outline">Iniciar Sesión</a>
+                <a href="/cliente/registro" class="btn-nb-gold"><i class="fa-solid fa-scissors"></i>Registrarse</a>
+            </div>
+
+            <!-- ADMIN / SECRETARIO -->
+            <div sec:authorize="hasAnyRole('ADMINISTRADOR','SECRETARIO')" class="nb-nav-group">
+                <a href="/admin/dashboard" class="btn-nb-gold"><i class="fa-solid fa-gauge"></i>Panel Admin</a>
+            </div>
+
+        </div>
+    </nav>
+
+    <div class="page-body">
+
+        <!-- ══ HERO SLIDER ══ -->
+        <section class="hero-slider">
+            <div class="slider-bg-track" id="sliderTrack">
+                <div th:if="${sliderImagenes == null or #lists.isEmpty(sliderImagenes)}" class="slide-bg-item active"
+                    style="background: linear-gradient(135deg,#0a0a0a 0%,#1c1508 100%);">
+                </div>
+                <div th:each="img, iterStat : ${sliderImagenes}" class="slide-bg-item"
+                    th:classappend="${iterStat.first} ? ' active' : ''" th:attr="data-titulo=${img.titulo != null ? img.titulo : ''},
+                      data-desc=${img.descripcion != null ? img.descripcion : ''}">
+                    <img th:src="${img.imagenUrl}" th:alt="${img.titulo != null ? img.titulo : 'Slide'}"
+                        class="slide-bg-img">
+                    <div class="slide-overlay"></div>
+                </div>
+            </div>
+
+            <div class="slider-content">
+                <div class="hero-eyebrow"
+                    th:text="${config != null and config['hero_tag'] != null and !#strings.isEmpty(config['hero_tag']) ? config['hero_tag'] : 'Barbería de Élite'}">
+                    Barbería de Élite
+                </div>
+
+                <h1 class="hero-title" id="heroTitulo">
+                    <th:block
+                        th:if="${not #lists.isEmpty(sliderImagenes) and sliderImagenes[0].titulo != null and not #strings.isEmpty(sliderImagenes[0].titulo)}">
+                        <span th:text="${sliderImagenes[0].titulo}"></span>
+                    </th:block>
+                    <th:block
+                        th:unless="${not #lists.isEmpty(sliderImagenes) and sliderImagenes[0].titulo != null and not #strings.isEmpty(sliderImagenes[0].titulo)}">
+                        <span
+                            th:text="${config != null and config['slogan'] != null and !#strings.isEmpty(config['slogan']) ? config['slogan'] : 'El Arte del'}">El
+                            Arte del</span>
+                        <em> Buen Corte</em>
+                    </th:block>
+                </h1>
+
+                <div class="hero-line"></div>
+
+                <p class="hero-desc" id="heroDesc"
+                    th:text="${not #lists.isEmpty(sliderImagenes) and sliderImagenes[0].descripcion != null and not #strings.isEmpty(sliderImagenes[0].descripcion)
+                      ? sliderImagenes[0].descripcion
+                      : (config != null and config['hero_descripcion'] != null and !#strings.isEmpty(config['hero_descripcion'])
+                         ? config['hero_descripcion']
+                         : 'Reserva tu cita con los mejores barberos de la ciudad. Experiencia, precisión y estilo en cada visita.')}">
+                </p>
+
+                <div class="hero-btns">
+                    <div sec:authorize="isAnonymous()" class="d-flex gap-3 flex-wrap justify-content-center">
+                        <a href="/reservar" class="btn-hero-gold"><i class="fa-solid fa-calendar-check"></i>Reservar
+                            Cita</a>
+                        <a href="/cliente/login" class="btn-hero-outline"><i class="fa-solid fa-user"></i>Iniciar
+                            Sesión</a>
+                    </div>
+                    <div sec:authorize="hasRole('CLIENTE')" class="d-flex gap-3 flex-wrap justify-content-center">
+                        <a href="/reservar" class="btn-hero-gold"><i class="fa-solid fa-calendar-plus"></i>Reservar
+                            Ahora</a>
+                        <a href="/cliente/mis-citas" class="btn-hero-outline"><i
+                                class="fa-solid fa-calendar-check"></i>Mis Citas</a>
+                    </div>
+                </div>
+
+                <div th:if="${sliderImagenes != null and #lists.size(sliderImagenes) > 1}" class="slider-dots"
+                    id="sliderDots">
+                    <span th:each="img, iterStat : ${sliderImagenes}" class="slider-dot"
+                        th:classappend="${iterStat.first} ? ' active' : ''" th:attr="data-index=${iterStat.index}"
+                        onclick="sliderGoTo(parseInt(this.dataset.index))">
+                    </span>
+                </div>
+            </div>
+
+            <th:block th:if="${sliderImagenes != null and #lists.size(sliderImagenes) > 1}">
+                <button class="slider-arrow slider-arrow-prev" onclick="sliderPrev()" aria-label="Anterior"><i
+                        class="fa-solid fa-chevron-left"></i></button>
+                <button class="slider-arrow slider-arrow-next" onclick="sliderNext()" aria-label="Siguiente"><i
+                        class="fa-solid fa-chevron-right"></i></button>
+            </th:block>
+
+            <div class="scroll-indicator">
+                <div class="scroll-line"></div>
+                <span>scroll</span>
+            </div>
+        </section>
+
+        <!-- ══ BANDA DE REDES SOCIALES ══ -->
+        <section class="section-redes">
+            <div class="container">
+                <div class="redes-inner">
+                    <span class="redes-label">Síguenos</span>
+                    <a th:if="${config != null and config['facebook_url'] != null and !#strings.isEmpty(config['facebook_url'])}"
+                        th:href="${config['facebook_url']}" class="red-social-btn fb" target="_blank">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                    <a th:if="${config != null and config['instagram_url'] != null and !#strings.isEmpty(config['instagram_url'])}"
+                        th:href="${config['instagram_url']}" class="red-social-btn ig" target="_blank">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                    <a th:if="${config != null and config['whatsapp_url'] != null and !#strings.isEmpty(config['whatsapp_url'])}"
+                        th:href="${config['whatsapp_url']}" class="red-social-btn wa" target="_blank">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a th:if="${config != null and config['tiktok_url'] != null and !#strings.isEmpty(config['tiktok_url'])}"
+                        th:href="${config['tiktok_url']}" class="red-social-btn tt" target="_blank">
+                        <i class="fa-brands fa-tiktok"></i> TikTok
+                    </a>
+                    <a th:if="${config != null and config['youtube_url'] != null and !#strings.isEmpty(config['youtube_url'])}"
+                        th:href="${config['youtube_url']}" class="red-social-btn yt" target="_blank">
+                        <i class="fa-brands fa-youtube"></i> YouTube
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══ INFO CARDS ══ -->
+        <section class="section-info">
+            <div class="container">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <div class="info-icon"><i class="fa-solid fa-scissors"></i></div>
+                            <h5>Barberos Expertos</h5>
+                            <p>Nuestro equipo está especializado en los mejores estilos y técnicas de corte moderno y
+                                clásico.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <div class="info-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                            <h5>Reserva Online</h5>
+                            <p>Agenda tu cita desde donde estés, elige tu barbero favorito y el servicio que prefieras.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <div class="info-icon"><i class="fa-solid fa-star"></i></div>
+                            <h5>Experiencia Premium</h5>
+                            <p>Ambiente exclusivo y atención completamente personalizada en cada una de tus visitas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══ PROMOCIONES ══ -->
+        <section class="section-promos" th:if="${promociones != null and !#lists.isEmpty(promociones)}">
+            <div class="container">
+                <div class="sec-header text-center mb-5">
+                    <span class="sec-eyebrow-promo">Ofertas Especiales</span>
+                    <h2 class="sec-title-promo">Promociones Vigentes</h2>
+                    <div class="sec-line-promo"></div>
+                </div>
+
+                <div class="row g-4 justify-content-center">
+                    <div class="col-lg-4 col-md-6" th:each="promo : ${promociones}"
+                         th:if="${promo.minimoVisitasRequeridas == 0 or (clienteLogueado != null and clienteLogueado.totalVisitas >= promo.minimoVisitasRequeridas)}">
+                        <div class="promo-ticket">
+
+                            <div class="ticket-notch notch-left"></div>
+                            <div class="ticket-notch notch-right"></div>
+
+                            <div class="promo-header-block d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge badge-promo-type" th:text="${promo.tipoPromocion}">SERVICIO</span>
+
+                                <div class="promo-discount-tag">
+                                    <span
+                                        th:text="${#numbers.formatDecimal(promo.porcentajeDescuento, 0, 0)} + '%'">50%</span>
+                                    <span class="off-text">OFF</span>
+                                </div>
+                            </div>
+
+                            <div class="promo-content-block">
+                                <h4 class="promo-ticket-title" th:text="${promo.nombre}">Título promo</h4>
+                                <p class="promo-ticket-desc" th:text="${promo.descripcion}"></p>
+                            </div>
+
+                            <div class="ticket-divider"></div>
+
+                            <div class="promo-footer-block d-flex justify-content-between align-items-center">
+                                <div class="target-item">
+                                    <i class="fa-solid fa-chair small me-1 icon-gold"
+                                        th:if="${promo.servicio != null}"></i>
+                                    <i class="fa-solid fa-box small me-1 icon-gold"
+                                        th:if="${promo.producto != null}"></i>
+                                    <i class="fa-solid fa-folder small me-1 icon-gold"
+                                        th:if="${promo.categoria != null}"></i>
+                                    <span class="target-name"
+                                        th:text="${promo.servicio != null ? promo.servicio.nombre : (promo.producto != null ? promo.producto.nombre : promo.categoria.nombre)}">Corte
+                                        + Skin Care</span>
+                                </div>
+
+                                <div class="promo-duration text-end" th:if="${promo.fechaInicio != null}">
+                                    <span class="duration-label"><i class="fa-regular fa-clock me-1"></i>Válido
+                                        hasta</span>
+                                    <span class="duration-date"
+                                        th:text="${#temporals.format(promo.fechaFin,'dd/MM/yyyy')}">30/06/2026</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-services">
+            <div class="container">
+                <div class="sec-header">
+                    <span class="sec-eyebrow">Nuestra Especialidad</span>
+                    <h2 class="sec-title">Servicios Destacados</h2>
+                    <div class="sec-line"></div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4" th:each="srv : ${serviciosDestacados}">
+                        <div class="service-item">
+                            <img th:if="${srv.imagenUrl != null and !srv.imagenUrl.isEmpty()}" th:src="${srv.imagenUrl}"
+                                th:alt="${srv.nombre}">
+                            <img th:if="${srv.imagenUrl == null or srv.imagenUrl.isEmpty()}"
+                                src="https://i.pinimg.com/736x/c2/8e/bb/c28ebbb903a0e46f3da16a66af0c463d.jpg"
+                                th:alt="${srv.nombre}">
+                            <div class="service-overlay">
+                                <h4 th:text="${srv.nombre}">Corte Clásico</h4>
+                                <p th:text="${srv.descripcion ?: 'Servicio profesional de barbería'}"></p>
+
+                                <div>
+                                    <span th:if="${promoHelper.calcularPrecioServicio(srv, clienteLogueado) < srv.precio.doubleValue()}"
+                                        style="text-decoration: line-through; color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-right: 6px;"
+                                        th:text="'S/ ' + ${srv.precio}"></span>
+
+                                    <span style="color:var(--gold); font-weight:700; font-size:1.1rem;"
+                                        th:text="'S/ ' + ${#numbers.formatDecimal(promoHelper.calcularPrecioServicio(srv, clienteLogueado), 1, 2)}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══ PRODUCTOS ══ -->
+        <section class="section-products" id="productos">
+            <div class="container">
+                <div class="sec-header">
+                    <span class="sec-eyebrow">Para el Cuidado Diario</span>
+                    <h2 class="sec-title">Productos Premium</h2>
+                    <div class="sec-line"></div>
+                </div>
+                <div class="d-flex justify-content-center flex-wrap gap-2 mb-5">
+                    <button type="button" class="filter-btn active"
+                        onclick="filtrarSubcategoria('TODOS', event)">Todos</button>
+                    <button type="button" class="filter-btn" th:each="sub : ${subcategoriasBarberia}"
+                        th:text="${sub.nombre}"
+                        th:attr="onclick='filtrarSubcategoria(\'' + ${sub.nombre} + '\', event)'">
+                    </button>
+                </div>
+                <div class="row g-4" id="gridProductos">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 item-producto-tarjeta" th:each="prod : ${productosBarberia}"
+                        th:attr="data-subcategoria=${prod.categoria != null ? prod.categoria.nombre : 'General'}">
+                        <div class="card-producto-premium position-relative"
+                            th:classappend="${prod.stock == 0} ? ' producto-agotado' : ''">
+
+                            <div th:if="${promoHelper.calcularPrecioProducto(prod) < prod.precioVenta && prod.stock > 0}"
+                                class="badge-promo-flotante animate__animated animate__fadeIn">
+                                <i class="fa-solid fa-fire me-1"></i>
+                                <span
+                                    th:with="descuento=${((prod.precioVenta - promoHelper.calcularPrecioProducto(prod)) / prod.precioVenta) * 100}"
+                                    th:text="'-' + ${#numbers.formatDecimal(descuento, 0, 0)} + '% OFF'">-10% OFF</span>
+                            </div>
+
+                            <div class="img-container">
+                                <img th:src="${prod.imagen != null && !prod.imagen.isEmpty() ? prod.imagen : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}"
+                                    th:alt="${prod.nombre}">
+
+                                <div th:if="${prod.stock == 0}" class="badge-agotado-overlay">
+                                </div>
+                            </div>
+
+                            <div class="cuerpo-detalle d-flex flex-column flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="subcat-tag mb-0"
+                                        th:text="${prod.categoria != null ? prod.categoria.nombre : 'General'}"></span>
+
+                                    <span class="badge-stock-info small" th:if="${prod.stock > 0}">
+                                        <i class="fa-solid fa-boxes-stacked me-1"></i>Stock: <strong
+                                            th:text="${prod.stock}">0</strong>
+                                    </span>
+                                    <span class="badge-stock-info small text-danger" th:if="${prod.stock == 0}">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>Agotado
+                                    </span>
+                                </div>
+
+                                <h5 class="prod-titulo" th:text="${prod.nombre}" th:title="${prod.nombre}">Nombre del
+                                    Producto</h5>
+
+                                <p class="prod-desc-corta" th:text="${prod.descripcion}"></p>
+
+                                <div class="prod-card-footer mt-auto pt-2">
+                                    <div th:if="${promoHelper.calcularPrecioProducto(prod) < prod.precioVenta && prod.stock > 0}"
+                                        class="promo-vigencia-tag mb-2">
+                                        <i class="fa-regular fa-clock me-1"></i>
+                                        <span>¡Promoción por tiempo limitado!</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div class="wrapper-precios-prod">
+                                            <span th:if="${promoHelper.calcularPrecioProducto(prod) < prod.precioVenta}"
+                                                class="precio-original-text d-block text-decoration-line-through text-white-50 small mb-0"
+                                                th:text="'S/ ' + ${#numbers.formatDecimal(prod.precioVenta, 1, 2)}"></span>
+
+                                            <span class="prod-precio"
+                                                th:text="'S/ ' + ${#numbers.formatDecimal(promoHelper.calcularPrecioProducto(prod), 1, 2)}">
+                                            </span>
+                                        </div>
+
+                                        <button th:if="${prod.stock > 0}" type="button" class="btn-agregar-carrito"
+                                            th:attr="onclick='agregarAlCarrito(' + ${prod.id} + ', ' + ${prod.stock} + ')'">
+                                            <i class="fa-solid fa-cart-shopping me-1"></i>Añadir
+                                        </button>
+                                        <button th:if="${prod.stock == 0}" type="button"
+                                            class="btn-agregar-carrito btn-disabled" disabled>
+                                            <i class="fa-solid fa-ban me-1"></i>Agotado
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══ FOOTER ══ -->
+        <footer class="footer-premium">
+            <div class="container">
+                <div class="row gy-5">
+
+                    <div class="col-lg-4">
+                        <a href="/" style="text-decoration:none;">
+                            <th:block
+                                th:if="${config != null and config['logo_url'] != null and !#strings.isEmpty(config['logo_url'])}">
+                                <img th:src="${config['logo_url']}" alt="Logo"
+                                    style="height:50px;max-width:160px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(201,168,76,0.3));">
+                            </th:block>
+                            <th:block
+                                th:unless="${config != null and config['logo_url'] != null and !#strings.isEmpty(config['logo_url'])}">
+                                <span class="footer-brand-name">
+                                    <i class="fa-solid fa-scissors me-2" style="color:var(--gold);"></i>
+                                    <span
+                                        th:text="${config != null and config['nombre_barberia'] != null ? config['nombre_barberia'] : 'BarberPro'}"></span>
+                                </span>
+                            </th:block>
+                        </a>
+                        <p class="footer-desc"
+                            th:text="${config != null and config['footer_descripcion'] != null and !#strings.isEmpty(config['footer_descripcion']) ? config['footer_descripcion'] : 'Definiendo el estilo del caballero moderno en Chiclayo desde 2026. La excelencia es nuestra única norma.'}">
+                        </p>
+                        <div class="footer-social-row">
+                            <a th:if="${config != null and config['facebook_url'] != null and !#strings.isEmpty(config['facebook_url'])}"
+                                th:href="${config['facebook_url']}" class="footer-social-btn" target="_blank"
+                                title="Facebook">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </a>
+                            <a th:if="${config != null and config['instagram_url'] != null and !#strings.isEmpty(config['instagram_url'])}"
+                                th:href="${config['instagram_url']}" class="footer-social-btn" target="_blank"
+                                title="Instagram">
+                                <i class="fa-brands fa-instagram"></i>
+                            </a>
+                            <a th:if="${config != null and config['whatsapp_url'] != null and !#strings.isEmpty(config['whatsapp_url'])}"
+                                th:href="${config['whatsapp_url']}" class="footer-social-btn" target="_blank"
+                                title="WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                            <a th:if="${config != null and config['tiktok_url'] != null and !#strings.isEmpty(config['tiktok_url'])}"
+                                th:href="${config['tiktok_url']}" class="footer-social-btn" target="_blank"
+                                title="TikTok">
+                                <i class="fa-brands fa-tiktok"></i>
+                            </a>
+                            <a th:if="${config != null and config['youtube_url'] != null and !#strings.isEmpty(config['youtube_url'])}"
+                                th:href="${config['youtube_url']}" class="footer-social-btn" target="_blank"
+                                title="YouTube">
+                                <i class="fa-brands fa-youtube"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <h6 class="footer-heading">Explorar</h6>
+                        <ul class="footer-links">
+                            <li><a href="/">Inicio</a></li>
+                            <li><a href="/reservar">Reservar Cita</a></li>
+                            <li><a href="/#productos">Catálogo</a></li>
+                            <li><a href="/nosotros">Nuestro Equipo</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="footer-heading">Horarios</h6>
+                        <ul class="footer-info">
+                            <li>
+                                <i class="fa-solid fa-moon fi-icon"></i>
+                                <div>
+                                    <span style="color:var(--text);font-size:0.82rem;">Lunes – Viernes</span><br>
+                                    <span
+                                        th:text="${config != null and config['horario_semana'] != null ? config['horario_semana'] : '10:00 - 21:00'}">10:00
+                                        - 21:00</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fa-solid fa-star fi-icon"></i>
+                                <div>
+                                    <span style="color:var(--text);font-size:0.82rem;">Sábado</span><br>
+                                    <span
+                                        th:text="${config != null and config['horario_sabado'] != null ? config['horario_sabado'] : '08:00 - 22:00'}">08:00
+                                        - 22:00</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fa-regular fa-sun fi-icon"></i>
+                                <div>
+                                    <span style="color:var(--text);font-size:0.82rem;">Domingo</span><br>
+                                    <span
+                                        th:text="${config != null and config['horario_domingo'] != null ? config['horario_domingo'] : '10:00 - 18:00'}">10:00
+                                        - 18:00</span>
+                                </div>
+                            </li>
+                            <li
+                                th:if="${config != null and config['horario_especial'] != null and !#strings.isEmpty(config['horario_especial'])}">
+                                <i class="fa-solid fa-circle-info fi-icon"></i>
+                                <span th:text="${config['horario_especial']}"
+                                    style="color:var(--gold);font-size:0.8rem;"></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <h6 class="footer-heading">Contacto</h6>
+                        <ul class="footer-info">
+                            <li>
+                                <i class="fa-solid fa-location-dot fi-icon"></i>
+                                <span
+                                    th:text="${config != null and config['direccion'] != null ? config['direccion'] : 'Av. los Incas 650, La Victoria'}"></span>
+                            </li>
+                            <li>
+                                <i class="fa-solid fa-phone fi-icon"></i>
+                                <span
+                                    th:text="${config != null and config['telefono'] != null ? config['telefono'] : '+51 951 578 601'}"></span>
+                            </li>
+                            <li
+                                th:if="${config != null and config['email'] != null and !#strings.isEmpty(config['email'])}">
+                                <i class="fa-solid fa-envelope fi-icon"></i>
+                                <span th:text="${config['email']}"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p
+                        th:text="${config != null and config['footer_copyright'] != null and !#strings.isEmpty(config['footer_copyright']) ? config['footer_copyright'] : '© 2026 BarberPro — La Clásica. Diseñado para la excelencia.'}">
+                    </p>
+                    <p style="color:rgba(240,236,224,0.15);font-size:0.72rem;">Hecho con <i class="fa-solid fa-scissors"
+                            style="color:var(--gold);"></i> en Chiclayo</p>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- /page-body -->
+
+    <!-- ══ WHATSAPP FLOAT ══ -->
+    <a th:if="${config != null and config['whatsapp_numero'] != null and !#strings.isEmpty(config['whatsapp_numero'])}"
+        th:href="'https://wa.me/' + ${config['whatsapp_numero']}" class="whatsapp-float" target="_blank"
+        title="Contáctanos por WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- ══ MODAL RESERVA ══ -->
+    <div class="modal fade" id="modalReservaPasos" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content text-white"
+                style="background:#111;border:1px solid rgba(201,168,76,0.2);border-radius:16px;">
+                <div class="modal-header border-0 p-4 pb-0 position-relative">
+                    <h4 class="modal-title fw-bold text-uppercase" style="color:#c9a84c;font-family:var(--serif);">
+                        <i class="fa-solid fa-scissors me-2"></i>Reserva Tu Experiencia
+                    </h4>
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <div class="col-lg-3 border-end border-secondary border-opacity-25 pe-lg-4">
+                            <div class="p-3 rounded-3 mb-4" style="background:#161616;">
+                                <h6 class="text-uppercase small fw-bold text-muted mb-2">Estado Actual:</h6>
+                                <p id="txtIndicadorPasoModal" class="fw-bold m-0 text-white fs-5">1. Elige tu Servicio
+                                </p>
+                            </div>
+                            <p class="text-muted small"><i class="fa-solid fa-circle-info me-2 text-warning"></i>Puedes
+                                regresar al paso anterior.</p>
+                            <p class="text-muted small mt-2">
+                                <i class="fa-solid fa-phone text-success me-2"></i>Soporte:
+                                <span
+                                    th:text="${config != null and config['telefono'] != null ? config['telefono'] : '995 515 022'}">995
+                                    515 022</span>
+                            </p>
+                        </div>
+                        <div class="col-lg-9 ps-lg-4">
+                            <input type="hidden" id="mdlServicioId">
+                            <input type="hidden" id="mdlBarberoId">
+                            <input type="hidden" id="mdlFecha">
+                            <input type="hidden" id="mdlHora">
+                            <div id="mdlPaso1" class="mdl-step-content">
+                                <h5 class="fw-bold mb-3 text-white">¿Qué servicio deseas programar?</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6" th:each="ser : ${servicios}">
+                                        <div class="p-3 rounded-3 card-modal-item"
+                                            th:attr="onclick='mdlSeleccionarServicio(\'' + ${ser.id} + '\')'">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="fw-bold text-white fs-6" th:text="${ser.nombre}"></span>
+                                                <span style="color:#c9a84c;font-weight:700;"
+                                                    th:text="'S/ ' + ${ser.precio}"></span>
+                                            </div>
+                                            <small class="text-muted d-block mt-1"
+                                                th:text="'Tiempo estimado: ' + ${ser.duracionMinutos} + ' min.'"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="mdlPaso2" class="mdl-step-content d-none">
+                                <h5 class="fw-bold mb-3 text-white">Selecciona tu barbero de confianza</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="p-3 text-center rounded-3 card-modal-item h-100 d-flex flex-column justify-content-center"
+                                            onclick="mdlSeleccionarBarbero('0')">
+                                            <i class="fa-solid fa-users fa-2x mb-2" style="color:#c9a84c"></i>
+                                            <span class="fw-bold text-white d-block">Cualquier Agente</span>
+                                            <small class="text-muted">Asignación automática</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4" th:each="bar : ${barberos}">
+                                        <div class="p-3 text-center rounded-3 card-modal-item"
+                                            th:attr="onclick='mdlSeleccionarBarbero(\'' + ${bar.id} + '\')'">
+                                            <img th:src="${bar.imagen != null} ? ${bar.imagen} : '/images/default-avatar.png'"
+                                                class="rounded-circle mb-2"
+                                                style="width:60px;height:60px;object-fit:cover;border:2px solid #c9a84c;">
+                                            <span class="fw-bold text-white d-block" th:text="${bar.nombre}"></span>
+                                            <small class="text-muted" th:text="${bar.especialidad}"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary mt-4 rounded-pill px-3 text-white"
+                                    onclick="mdlCambiarPaso(1, '1. Elige tu Servicio')">← Atrás</button>
+                            </div>
+                            <div id="mdlPaso3" class="mdl-step-content d-none">
+                                <h5 class="fw-bold mb-3 text-white">Elige la Fecha y Hora ideal</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3"
+                                            style="background:#161616;border:1px solid rgba(255,255,255,0.05);">
+                                            <input type="text" id="calendarioInyectado" class="d-none">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block mb-2 text-uppercase fw-bold"
+                                            id="lblMdlHoras">Selecciona un día</small>
+                                        <div class="d-flex flex-wrap gap-2" id="mdlContenedorHoras">
+                                            <p class="text-muted small m-0"><i
+                                                    class="fa-solid fa-calendar-days me-2 text-warning"></i>Elige un día
+                                                del calendario.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary mt-4 rounded-pill px-3 text-white"
+                                    onclick="mdlCambiarPaso(2, '2. Elige tu Barbero')">← Atrás</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MODAL AUTH ══ -->
+    <div class="modal fade" id="modalMandarAAuth" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content bg-dark border-secondary text-white text-center p-3" style="border-radius:14px;">
+                <h6 class="fw-bold text-warning"><i class="fa-solid fa-user-lock me-2"></i>Casi listo</h6>
+                <p class="text-muted small">Para registrar tu cupo con Yape, por favor identifícate.</p>
+                <div class="d-grid gap-2 mt-2">
+                    <a href="/cliente/login" class="btn btn-sm btn-warning text-dark fw-bold rounded-3">Iniciar
+                        Sesión</a>
+                    <a href="/cliente/registro" class="btn btn-sm btn-outline-light rounded-3">Registrarse</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Toast notificación carrito -->
+    <div id="toastCarrito" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+            background:#1a1a1a;border:1px solid rgba(201,168,76,0.4);color:#f0ece0;
+            padding:14px 24px;border-radius:10px;font-size:0.9rem;font-weight:500;
+            z-index:9999;transition:transform 0.3s ease;box-shadow:0 8px 30px rgba(0,0,0,0.5);
+            display:flex;align-items:center;gap:10px;white-space:nowrap;">
+        <i class="fa-solid fa-circle-check" style="color:#c9a84c;"></i>
+        <span id="toastMensaje">Producto agregado</span>
+    </div>
+
+    <!-- Modal auth para carrito (no logueado) -->
+    <div class="modal fade" id="modalAuthCarrito" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-white text-center p-4"
+                style="background:#111;border:1px solid rgba(201,168,76,0.2);border-radius:14px;">
+                <i class="fa-solid fa-cart-shopping fa-2x mb-3" style="color:#c9a84c;"></i>
+                <h6 class="fw-bold mb-2">Inicia sesión para comprar</h6>
+                <p class="text-muted small mb-3">
+                    Para agregar productos al carrito y realizar pedidos necesitas una cuenta.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="/cliente/login" class="btn-nb-gold text-center text-decoration-none"
+                        style="padding:10px;border-radius:6px;">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i>Iniciar Sesión
+                    </a>
+                    <a href="/cliente/registro" class="btn-nb-outline text-center text-decoration-none"
+                        style="padding:10px;border-radius:6px;">
+                        Crear cuenta
+                    </a>
+                </div>
+                <button type="button" class="btn btn-link text-muted small mt-2"
+                    data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <div class="carrito-drawer-overlay" id="carritoOverlay" onclick="cerrarCarrito()"></div>
+
+    <!-- Drawer -->
+    <div class="carrito-drawer" id="carritoDrawer">
+        <div class="carrito-drawer-header">
+            <div class="carrito-drawer-title">
+                <i class="fa-solid fa-cart-shopping"></i>
+                Tu Carrito
+                <span id="drawerCount" style="background:var(--gold);color:#000;border-radius:20px;
+                         padding:2px 8px;font-size:0.7rem;font-family:var(--sans);">0</span>
+            </div>
+            <button class="carrito-drawer-close" onclick="cerrarCarrito()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="carrito-drawer-body" id="carritoDrawerBody">
+            <div class="carrito-vacio" id="carritoVacio">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <p>Tu carrito está vacío</p>
+            </div>
+        </div>
+
+        <div class="carrito-drawer-footer">
+            <div class="carrito-total-row">
+                <span class="carrito-total-label">Total estimado</span>
+                <span class="carrito-total-val" id="drawerTotal">S/ 0.00</span>
+            </div>
+            <button class="btn-ir-pagar" onclick="irAPagar()">
+                <i class="fa-solid fa-lock"></i>
+                Ir a pagar
+            </button>
+        </div>
+    </div>
+    <script th:src="@{/js/reservar-pasos.js}"></script>
+    <script th:src="@{/js/index.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

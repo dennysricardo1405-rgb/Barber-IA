@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Kardex de Inventario | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/kardex.css}">
+</head>
+
+<body class="bg-dark text-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='kardex')}"></div>
+
+    <div class="main-content pt-4" style="margin-left: 260px; padding: 30px;">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0" style="color:#ff6b2b">
+                        <i class="fa-solid fa-boxes-packing me-2" style="color:#ff6b2b"></i> Kardex de Inventario
+                    </h2>
+                    <p class="text-muted m-0 small">Auditoría e historial de movimientos de stock con paginación real</p>
+                </div>
+                <span class="badge bg-dark border text-gold px-3 py-2 fw-semibold">
+                    <i class="fa-solid fa-user-shield me-2"></i> Vista: Administrador
+                </span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-mini">
+                        <div class="text-muted small">Registros en esta página</div>
+                        <h4 class="text-white mb-0 fw-bold mt-1" th:text="${#lists.size(movimientos)}">0</h4>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-mini">
+                        <div class="text-muted small">Ingresos Filtrados (Entradas)</div>
+                        <h4 class="text-success mb-0 fw-bold mt-1">
+                            <i class="fa-solid fa-circle-arrow-up me-1"></i> <span th:text="${totalEntradas}">0</span>
+                        </h4>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-mini">
+                        <div class="text-muted small">Salidas Filtradas (Ventas)</div>
+                        <h4 class="text-danger mb-0 fw-bold mt-1">
+                            <i class="fa-solid fa-circle-arrow-down me-1"></i> <span th:text="${totalSalidas}">0</span>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <form th:action="@{/admin/inventario/movimientos}" method="GET" class="card p-3 mb-4 border-0" style="background: #141414; border: 1px solid rgba(255,255,255,0.03) !important;">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Desde (Fecha):</label>
+                        <input type="date" name="fechaInicio" th:value="${fechaInicio}" class="form-control input-dark-kardex w-100">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Hasta (Fecha):</label>
+                        <input type="date" name="fechaFin" th:value="${fechaFin}" class="form-control input-dark-kardex w-100">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">O Filtrar por Mes Completo:</label>
+                        <input type="month" name="mesFiltro" th:value="${mesFiltro}" class="form-control input-dark-kardex w-100">
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning fw-semibold text-dark flex-grow-1" style="background:#c9a84c; border:none; border-radius:8px; padding: 7px 0;">
+                            <i class="fa-solid fa-filter me-1"></i> Filtrar
+                        </button>
+                        <a th:href="@{/admin/inventario/movimientos}" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center" style="border-radius:8px; padding: 0 14px;">
+                            <i class="fa-solid fa-rotate"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <div class="mb-3">
+                <input type="text" id="inputBuscarTexto" class="input-dark-kardex" style="width: 320px;" 
+                       placeholder="Buscar producto en la tabla actual..." oninput="filtrarTablaActual()"/>
+            </div>
+
+            <div class="card border-0 rounded-3" style="background:#111; border:1px solid rgba(255,255,255,0.05) !important">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="color: #f0ece0;">
+                            <thead style="background:#0d0d0d">
+                                <tr>
+                                    <th class="ps-4 text-muted small text-uppercase py-3">Fecha / Hora</th>
+                                    <th class="text-muted small text-uppercase py-3">Producto</th>
+                                    <th class="text-muted small text-uppercase py-3 text-center">Tipo</th>
+                                    <th class="text-muted small text-uppercase py-3 text-center">Cantidad</th>
+                                    <th class="text-muted small text-uppercase py-3 text-center">Stock Resultante</th>
+                                    <th class="text-muted small text-uppercase py-3 pe-4">Detalle / Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(movimientos)}">
+                                    <td colspan="6" class="text-center text-muted py-5">
+                                        <i class="fa-solid fa-clipboard-list d-block fs-2 mb-2 opacity-25"></i>
+                                        No se registran movimientos con los filtros aplicados.
+                                    </td>
+                                </tr>
+                                <tr th:each="m : ${movimientos}" class="fila-kardex" 
+                                    th:data-producto="${m.producto.nombre}"
+                                    style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                                    
+                                    <td class="ps-4 font-monospace small">
+                                        <div class="text-white" th:text="${#temporals.format(m.fecha, 'dd/MM/yyyy')}"></div>
+                                        <div class="text-muted" style="font-size:0.72rem" th:text="${#temporals.format(m.fecha, 'HH:mm')} + ' hrs'"></div>
+                                    </td>
+                                    <td><span class="fw-bold text-gold" th:text="${m.producto.nombre}"></span></td>
+                                    <td class="text-center">
+                                        <span th:if="${m.tipoMovimiento == 'ENTRADA'}" class="badge-entrada">INGRESO</span>
+                                        <span th:if="${m.tipoMovimiento == 'SALIDA'}" class="badge-salida">SALIDA</span>
+                                    </td>
+                                    <td class="text-center fw-bold font-monospace" 
+                                        th:classappend="${m.tipoMovimiento == 'ENTRADA'} ? 'text-success' : 'text-danger'"
+                                        th:text="${m.tipoMovimiento == 'ENTRADA'} ? '+' + ${m.cantidad} : '-' + ${m.cantidad}">
+                                    </td>
+                                    <td class="text-center font-monospace fw-semibold" style="color: #f39c12;" th:text="${m.stockResultante}"></td>
+                                    <td class="text-muted small pe-4" th:text="${m.motivo}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3" th:if="${totalPages > 0}">
+                <div class="small text-muted">
+                    Mostrando un total de <span class="text-white fw-bold" th:text="${totalItems}">0</span> operaciones.
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm m-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link page-link-dark" th:href="@{/admin/inventario/movimientos(page=${currentPage - 1}, fechaInicio=${fechaInicio}, fechaFin=${fechaFin}, mesFiltro=${mesFiltro})}">«</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link page-link-dark" th:href="@{/admin/inventario/movimientos(page=${i}, fechaInicio=${fechaInicio}, fechaFin=${fechaFin}, mesFiltro=${mesFiltro})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                            <a class="page-link page-link-dark" th:href="@{/admin/inventario/movimientos(page=${currentPage + 1}, fechaInicio=${fechaInicio}, fechaFin=${fechaFin}, mesFiltro=${mesFiltro})}">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function filtrarTablaActual() {
+            const txt = document.getElementById("inputBuscarTexto").value.toLowerCase().trim();
+            document.querySelectorAll(".fila-kardex").forEach(f => {
+                const prod = (f.dataset.producto || '').toLowerCase();
+                f.style.display = prod.includes(txt) ? "" : "none";
+            });
+        }
+    </script>
+</body>
+</html>

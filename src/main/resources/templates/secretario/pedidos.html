@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pedidos Online | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf-header" content="X-CSRF-TOKEN" />
+    <style>
+        .pedido-row {
+            background: #1a1a1f;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .pedido-row:hover {
+            border-color: rgba(201, 168, 76, 0.25);
+        }
+
+        .pedido-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pedido-id {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #c9a84c;
+            font-family: monospace;
+        }
+
+        .pedido-cliente {
+            color: #f0ece0;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pedido-fecha {
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .detalle-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .detalle-item:last-child {
+            border-bottom: none;
+        }
+
+        .detalle-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid rgba(201, 168, 76, 0.15);
+        }
+
+        .detalle-nombre {
+            color: #f0ece0;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .detalle-meta {
+            color: #888;
+            font-size: 0.78rem;
+        }
+
+        .detalle-sub {
+            margin-left: auto;
+            color: #c9a84c;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .pedido-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pedido-total-val {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2ecc71;
+            font-family: monospace;
+        }
+
+        /* Badges */
+        .bp {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .bp-pendiente {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .bp-aceptado {
+            background: rgba(46, 204, 113, 0.12);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .bp-rechazado {
+            background: rgba(231, 76, 60, 0.12);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        /* Filtros tabs */
+        .tab-filtro {
+            padding: 7px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #1a1a1f;
+            color: #aaa;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .tab-filtro.active,
+        .tab-filtro:hover {
+            background: rgba(201, 168, 76, 0.12);
+            color: #c9a84c;
+            border-color: rgba(201, 168, 76, 0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='recepcion_pedidos')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0 text-primary">Pedidos Online</h2>
+                    <p class="text-muted m-0 small">
+                        Gestiona los pedidos de productos realizados por los clientes.
+                    </p>
+                </div>
+                <span class="badge bg-dark border text-warning px-3 py-2 fw-semibold">
+                    <i class="fa-solid fa-box me-2"></i>
+                    <span th:text="${pedidos.size()} + ' pedidos en total'"></span>
+                </span>
+            </div>
+
+            <!-- Filtros -->
+            <div class="d-flex gap-2 mb-4 flex-wrap">
+                <button class="tab-filtro active" onclick="filtrarPedidos('todos', this)">
+                    <i class="fa-solid fa-list me-1"></i> Todos
+                </button>
+                <button class="tab-filtro" onclick="filtrarPedidos('pendiente', this)">
+                    <i class="fa-solid fa-hourglass-half me-1"></i> Pendientes
+                </button>
+                <button class="tab-filtro" onclick="filtrarPedidos('aceptado', this)">
+                    <i class="fa-solid fa-circle-check me-1"></i> Aceptados
+                </button>
+                <button class="tab-filtro" onclick="filtrarPedidos('rechazado', this)">
+                    <i class="fa-solid fa-xmark me-1"></i> Rechazados
+                </button>
+            </div>
+
+            <!-- Lista de pedidos -->
+            <div id="listaPedidos">
+                <div th:each="pedido : ${pedidos}" class="pedido-row"
+                    th:data-estado="${pedido.estado == 1 ? 'pendiente' : (pedido.estado == 2 ? 'aceptado' : 'rechazado')}"
+                    th:attr="data-pedido-id=${pedido.id}">
+                    <div class="pedido-top">
+                        <div>
+                            <div class="pedido-id" th:text="'#' + ${pedido.id}"></div>
+                            <div class="pedido-cliente"
+                                th:text="${pedido.cliente.nombres + ' ' + pedido.cliente.apellidos}">
+                            </div>
+                            <div class="pedido-fecha"
+                                th:text="${#temporals.format(pedido.fechaPedido,'dd/MM/yyyy HH:mm')}">
+                            </div>
+                        </div>
+                        <span th:switch="${pedido.estado}">
+                            <span th:case="1" class="bp bp-pendiente">
+                                <i class="fa-solid fa-hourglass-half me-1"></i>Pendiente
+                            </span>
+                            <span th:case="2" class="bp bp-aceptado">
+                                <i class="fa-solid fa-circle-check me-1"></i>Aceptado
+                            </span>
+                            <span th:case="0" class="bp bp-rechazado">
+                                <i class="fa-solid fa-xmark me-1"></i>Rechazado
+                            </span>
+                        </span>
+                    </div>
+
+                    <!-- Detalles productos -->
+                    <div class="mb-2">
+                        <div th:each="det : ${pedido.detalles}" class="detalle-item">
+                            <img th:src="${det.producto.imagen != null and !det.producto.imagen.isEmpty()
+                   ? det.producto.imagen
+                   : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}" class="detalle-img"
+                                th:alt="${det.producto.nombre}">
+                            <div>
+                                <div class="detalle-nombre">
+                                    <span th:text="${det.producto.nombre}"></span>
+                                    <span th:if="${det.precioUnitario < det.producto.precioVenta}"
+                                        class="badge bg-danger text-white ms-1"
+                                        style="font-size: 0.68rem; padding: 2px 6px;">
+                                        <i class="fa-solid fa-tag me-1"></i>PROMO
+                                    </span>
+                                </div>
+                                <div class="detalle-meta">
+                                    <span th:text="${det.cantidad}"></span> und ×
+
+                                    <th:block th:if="${det.precioUnitario < det.producto.precioVenta}">
+                                        <span
+                                            style="text-decoration: line-through; color: rgba(255,255,255,0.3); font-size: 0.78rem;">
+                                            S/<span
+                                                th:text="${#numbers.formatDecimal(det.producto.precioVenta,1,2)}"></span>
+                                        </span>
+                                        <strong style="color: #c9a84c;">
+                                            S/<span th:text="${#numbers.formatDecimal(det.precioUnitario,1,2)}"></span>
+                                        </strong>
+                                    </th:block>
+
+                                    <th:block th:unless="${det.precioUnitario < det.producto.precioVenta}">
+                                        S/<span th:text="${#numbers.formatDecimal(det.precioUnitario,1,2)}"></span>
+                                    </th:block>
+                                </div>
+                            </div>
+                            <div class="detalle-sub" th:text="'S/ ' + ${#numbers.formatDecimal(det.subtotal,1,2)}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pedido-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Correo cliente -->
+                            <span style="color:#888;font-size:0.82rem;">
+                                <i class="fa-solid fa-envelope me-1"></i>
+                                <span th:text="${pedido.cliente.correo}"></span>
+                            </span>
+                            <!-- Ver comprobante -->
+                            <a th:if="${pedido.comprobantePago != null}"
+                                th:href="@{'/uploads/comprobantes/' + ${pedido.comprobantePago}}" target="_blank"
+                                style="color:#c9a84c;font-size:0.82rem;text-decoration:none;">
+                                <i class="fa-solid fa-image me-1"></i>Ver comprobante
+                            </a>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="pedido-total-val"
+                                th:text="'S/ ' + ${#numbers.formatDecimal(pedido.total,1,2)}">
+                            </span>
+
+                            <!-- Botones solo si está pendiente -->
+                            <div th:if="${pedido.estado == 1}" class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success fw-bold rounded-pill px-3"
+                                    th:attr="onclick='gestionarPedido(' + ${pedido.id} + ', true)'">
+                                    <i class="fa-solid fa-check me-1"></i>Aceptar
+                                </button>
+                                <button class="btn btn-sm btn-danger fw-bold rounded-pill px-3"
+                                    th:attr="onclick='gestionarPedido(' + ${pedido.id} + ', false)'">
+                                    <i class="fa-solid fa-xmark me-1"></i>Rechazar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty -->
+                <div th:if="${pedidos.isEmpty()}" class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-box-open fa-3x mb-3 d-block" style="color:#444;"></i>
+                    No hay pedidos registrados aún.
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- Modal confirmación acción pedido -->
+    <div class="modal fade" id="modalConfirmarPedido" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 text-white"
+                style="background:#111; border:1px solid rgba(201,168,76,0.2) !important;">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold" id="modalConfirmarTitulo">
+                        <i class="fa-solid fa-circle-question me-2" style="color:#c9a84c"></i>
+                        Confirmar acción
+                    </h6>
+                </div>
+                <div class="modal-body">
+                    <p id="modalConfirmarMensaje" style="color:#aaa; font-size:0.9rem; line-height:1.6;"></p>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-white rounded-pill px-3"
+                        data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-sm fw-bold rounded-pill px-4" id="modalConfirmarBtn">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ver comprobante -->
+    <div class="modal fade" id="modalComprobante" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:#111; border:1px solid rgba(201,168,76,0.2);">
+                <div class="modal-header" style="border-color:rgba(201,168,76,0.2);">
+                    <h6 class="modal-title" style="color:#c9a84c;">
+                        <i class="fa-solid fa-image me-2"></i>Comprobante de pago
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <img id="comprobanteGrande" src="" style="max-width:100%; border-radius:10px;" alt="Comprobante">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function getCsrf() {
+            return document.querySelector('meta[name="_csrf"]')?.content || '';
+        }
+
+        let pedidoPendienteId = null;
+        let pedidoPendienteAccion = null;
+
+        function gestionarPedido(id, aceptar) {
+            pedidoPendienteId = id;
+            pedidoPendienteAccion = aceptar;
+
+            const titulo = document.getElementById('modalConfirmarTitulo');
+            const mensaje = document.getElementById('modalConfirmarMensaje');
+            const btn = document.getElementById('modalConfirmarBtn');
+
+            if (aceptar) {
+                titulo.innerHTML = '<i class="fa-solid fa-circle-check me-2" style="color:#2ecc71"></i>Aceptar pedido';
+                mensaje.innerHTML = 'Al aceptar, el pedido cambiará al estado <strong style="color:#2ecc71;">Aceptado</strong> y el cliente podrá ver desde su perfil que ya puede venir a recoger sus productos.'; btn.className = 'btn btn-sm fw-bold rounded-pill px-4 btn-success';
+                btn.textContent = 'Sí, aceptar';
+            } else {
+                titulo.innerHTML = '<i class="fa-solid fa-xmark me-2" style="color:#e74c3c"></i>Rechazar pedido';
+                mensaje.innerHTML = '¿Estás seguro de que deseas <strong style="color:#e74c3c;">rechazar</strong> este pedido? El stock será devuelto automáticamente.';
+                btn.className = 'btn btn-sm fw-bold rounded-pill px-4 btn-danger';
+                btn.textContent = 'Sí, rechazar';
+            }
+
+            new bootstrap.Modal(document.getElementById('modalConfirmarPedido')).show();
+        }
+
+        document.getElementById('modalConfirmarBtn').addEventListener('click', async () => {
+            bootstrap.Modal.getInstance(
+                document.getElementById('modalConfirmarPedido')).hide();
+
+            const accion = pedidoPendienteAccion ? 'aceptar' : 'rechazar';
+
+            try {
+                const res = await fetch(`/secretario/pedidos/${pedidoPendienteId}/${accion}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrf(),
+                        'Accept': 'application/json'
+                    }
+                });
+
+                // Verificar que la respuesta sea JSON
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    mostrarToast('err', 'Error de sesión. Recarga la página.');
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    // Ocultar la fila del pedido con animación
+                    const fila = document.querySelector(
+                        `[data-pedido-id="${pedidoPendienteId}"]`);
+                    if (fila) {
+                        fila.style.transition = 'opacity 0.4s';
+                        fila.style.opacity = '0';
+                        setTimeout(() => {
+                            fila.dataset.estado = pedidoPendienteAccion ? 'aceptado' : 'rechazado';
+                            fila.style.opacity = '1';
+                            window.location.reload();
+                        }, 400);
+                    } else {
+                        window.location.reload();
+                    }
+                    mostrarToast('ok', pedidoPendienteAccion
+                        ? '✅ Pedido aceptado. Correo enviado al cliente.'
+                        : '❌ Pedido rechazado. Stock devuelto.');
+                } else {
+                    mostrarToast('err', data.error || 'Error al procesar.');
+                }
+            } catch (e) {
+                mostrarToast('err', 'Error de conexión: ' + e.message);
+            }
+        });
+
+        function verComprobante(src) {
+            document.getElementById('comprobanteGrande').src = src;
+            new bootstrap.Modal(document.getElementById('modalComprobante')).show();
+        }
+
+        function filtrarPedidos(estado, btn) {
+            document.querySelectorAll('.tab-filtro')
+                .forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.pedido-row').forEach(row => {
+                row.style.display =
+                    (estado === 'todos' || row.dataset.estado === estado) ? '' : 'none';
+            });
+        }
+
+        // Toast igual al de citas
+        const toastBox = document.createElement('div');
+        toastBox.id = 'toastBox';
+        toastBox.style.cssText =
+            'position:fixed;bottom:28px;right:28px;z-index:9999;min-width:280px;display:none;';
+        document.body.appendChild(toastBox);
+
+        function mostrarToast(tipo, texto) {
+            toastBox.innerHTML = `
+        <div style="background:${tipo === 'ok' ? '#0f2e1a' : '#2e0f0f'};
+                    border:1px solid ${tipo === 'ok' ? '#2ecc71' : '#e74c3c'};
+                    color:${tipo === 'ok' ? '#2ecc71' : '#e74c3c'};
+                    border-radius:12px;padding:14px 18px;
+                    display:flex;align-items:center;gap:10px;font-weight:600;">
+            <i class="fa-solid fa-${tipo === 'ok' ? 'circle-check' : 'circle-xmark'} fa-lg"></i>
+            <span>${texto}</span>
+        </div>`;
+            toastBox.style.display = 'block';
+            setTimeout(() => { toastBox.style.display = 'none'; }, 4500);
+        }
+    </script>
+</body>
+
+</html>

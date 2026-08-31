@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión del Sitio Barbería La Clásica</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #c9a84c;
+            --gold-dim: rgba(201, 168, 76, 0.15);
+            --gold-border: rgba(201, 168, 76, 0.25);
+            --surface: #161616;
+            --surface-2: #1c1c1c;
+            --border: rgba(255, 255, 255, 0.05);
+            --text: #f0f0f0;
+            --muted: rgba(255, 255, 255, 0.35);
+        }
+
+        body {
+            background: #141414;
+        }
+
+        .main-content {
+            margin-left: 265px;
+            padding: 32px 36px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 20px 16px;
+            }
+        }
+
+        /* ── Tab nav personalizado ── */
+        .site-tabs {
+            display: flex;
+            gap: 4px;
+            background: #111;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 5px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .site-tab-btn {
+            flex: 1;
+            min-width: 130px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .site-tab-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .site-tab-btn.active {
+            background: var(--gold-dim);
+            color: var(--gold);
+            border: 1px solid var(--gold-border);
+        }
+
+        .site-tab-btn .tab-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.6;
+            display: none;
+        }
+
+        .site-tab-btn.active .tab-dot {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ── Paneles ── */
+        .tab-panel {
+            display: none;
+            animation: fadeUp 0.25s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Upload zone ── */
+        .upload-zone {
+            border: 2px dashed var(--gold-border);
+            border-radius: 12px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: rgba(201, 168, 76, 0.03);
+            position: relative;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+            border-color: var(--gold);
+            background: var(--gold-dim);
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .uz-icon {
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 7px;
+        }
+
+        .file-chosen {
+            font-size: 0.8rem;
+            color: var(--gold);
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* ── Preview ── */
+        .preview-wrap {
+            display: none;
+            margin-top: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--gold-border);
+        }
+
+        .preview-wrap img {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+        }
+
+        /* ── Cards (slider / promo) ── */
+        .item-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+        }
+
+        .item-card img {
+            width: 100%;
+            height: 145px;
+            object-fit: cover;
+            background: #111;
+        }
+
+        .item-card .info {
+            padding: 11px 13px;
+            flex-grow: 1;
+        }
+
+        .item-card .card-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+
+        .item-card .card-desc {
+            font-size: 0.76rem;
+            color: var(--muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-card .footer-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 13px;
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        /* ── Badge orden / promo ── */
+        .badge-gold {
+            background: var(--gold-dim);
+            color: var(--gold);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--gold-border);
+        }
+
+        .badge-promo {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-active {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .badge-inactive {
+            background: rgba(231, 76, 60, 0.12);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.25);
+        }
+
+        /* ── Mini stats ── */
+        .mini-stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px 18px;
+            text-align: center;
+        }
+
+        .mini-stat .num {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .mini-stat .num.green {
+            color: #2ecc71;
+        }
+
+        .mini-stat .lbl {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .empty-state i {
+            color: rgba(201, 168, 76, 0.18);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* ── Config sections ── */
+        .config-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .config-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-card-header .header-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: var(--gold-dim);
+            border: 1px solid var(--gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .config-card-header h6 {
+            font-weight: 800;
+            color: var(--text);
+            font-size: 0.85rem;
+            margin: 0;
+            letter-spacing: 0.3px;
+        }
+
+        .config-card-header p {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .config-card-body {
+            padding: 20px;
+        }
+
+        /* ── Logo preview ── */
+        .logo-preview-box {
+            width: 100%;
+            height: 100px;
+            background: #0d0d0d;
+            border: 1px solid var(--gold-border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .logo-preview-box img {
+            max-width: 200px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .logo-preview-box .logo-placeholder {
+            color: var(--muted);
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── Red social row ── */
+        .social-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .social-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .social-icon.fb {
+            background: rgba(24, 119, 242, 0.15);
+            color: #1877F2;
+            border: 1px solid rgba(24, 119, 242, 0.25);
+        }
+
+        .social-icon.ig {
+            background: rgba(225, 48, 108, 0.15);
+            color: #E1306C;
+            border: 1px solid rgba(225, 48, 108, 0.25);
+        }
+
+        .social-icon.wa {
+            background: rgba(37, 211, 102, 0.15);
+            color: #25D366;
+            border: 1px solid rgba(37, 211, 102, 0.25);
+        }
+
+        .social-icon.tt {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .social-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            min-width: 80px;
+        }
+
+        /* ── Form controls dark ── */
+        .form-control,
+        .form-select {
+            background-color: #1a1a1a !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: var(--text) !important;
+            border-radius: 8px;
+        }
+
+        .form-control:focus {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12) !important;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        .form-label {
+            color: var(--muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        textarea.form-control {
+            resize: none;
+        }
+
+        /* ── Alerts ── */
+        .alert-success {
+            background: rgba(46, 204, 113, 0.08) !important;
+            border-color: rgba(46, 204, 113, 0.25) !important;
+            color: #2ecc71 !important;
+        }
+
+        .alert-danger {
+            background: rgba(231, 76, 60, 0.08) !important;
+            border-color: rgba(231, 76, 60, 0.25) !important;
+            color: #e74c3c !important;
+        }
+
+        /* ── Btn gold ── */
+        .btn-gold-solid {
+            background: var(--gold);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            width: 100%;
+        }
+
+        .btn-gold-solid:hover {
+            opacity: 0.88;
+        }
+
+        /* ── Section header (dentro de tabs) ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-header h5 {
+            color: var(--text);
+            font-weight: 800;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .section-header p {
+            color: var(--muted);
+            font-size: 0.78rem;
+            margin: 0;
+        }
+
+        /* ── Horario row ── */
+        .horario-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .horario-row:last-child {
+            border-bottom: none;
+        }
+
+        .horario-day {
+            min-width: 140px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        /* ── Color swatch ── */
+        .color-swatch-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            width: 44px;
+            height: 38px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #1a1a1a;
+            cursor: pointer;
+            padding: 2px 3px;
+        }
+
+        /* ── Promo badge input ── */
+        .badge-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .badge-option {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .badge-option.selected {
+            border-color: var(--gold) !important;
+        }
+
+        .badge-off {
+            background: rgba(231, 76, 60, 0.12);
+            color: #e74c3c;
+        }
+
+        .badge-new {
+            background: rgba(46, 204, 113, 0.12);
+            color: #2ecc71;
+        }
+
+        .badge-pct {
+            background: rgba(52, 152, 219, 0.12);
+            color: #3498db;
+        }
+
+        .badge-promo2 {
+            background: rgba(155, 89, 182, 0.12);
+            color: #9b59b6;
+        }
+
+        .badge-free {
+            background: rgba(201, 168, 76, 0.15);
+            color: var(--gold);
+        }
+
+        /* ── Page title ── */
+        .page-title-area {
+            margin-bottom: 24px;
+        }
+
+        .page-title-area h2 {
+            font-family: 'Syne', sans-serif;
+            color: var(--text);
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .page-title-area p {
+            color: var(--muted);
+            font-size: 0.83rem;
+            margin: 0;
+        }
+
+        /* ── Divider ── */
+        .gold-micro-line {
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            border-radius: 2px;
+            width: 40px;
+            margin: 6px 0 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Sidebar ── -->
+    <div th:replace="~{layout/sidebar :: sidebar_menu('slider')}"></div>
+
+    <!-- ── Main ── -->
+    <div class="main-content">
+
+        <!-- Cabecera de página -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div class="page-title-area">
+                <h2><i class="fa-solid fa-wand-magic-sparkles me-2" style="color:var(--gold);"></i>Gestión del Sitio
+                </h2>
+                <div class="gold-micro-line"></div>
+                <p>Controla todo el contenido público de Barbería La Clásica</p>
+            </div>
+            <a href="/" target="_blank" class="btn btn-secondary btn-sm mt-1">
+                <i class="fa-solid fa-eye me-1"></i>Ver Página
+            </a>
+        </div>
+
+        <!-- ── Stats globales ── -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="mini-stat">
+                    <div class="num" th:text="${sliderImagenes != null ? #lists.size(sliderImagenes) : 0}">0</div>
+                    <div class="lbl">Slides</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="mini-stat">
+                    <div class="num green"
+                        th:text="${sliderImagenes != null ? #lists.size(sliderImagenes.?[activo == true]) : 0}">0</div>
+                    <div class="lbl">Slides activos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Alertas flash ── -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-xmark me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- ══════════════ TABS ══════════════ -->
+        <div class="site-tabs">
+            <button class="site-tab-btn active" onclick="switchTab('slider', this)">
+                <span class="tab-dot"></span>
+                <i class="fa-solid fa-images"></i> Slider
+            </button>
+            <button class="site-tab-btn" onclick="switchTab('identidad', this)">
+                <span class="tab-dot"></span>
+                <i class="fa-solid fa-palette"></i> Identidad & Marca
+            </button>
+            <button class="site-tab-btn" onclick="switchTab('contacto', this)">
+                <span class="tab-dot"></span>
+                <i class="fa-solid fa-address-book"></i> Contacto & Horarios
+            </button>
+            <button class="site-tab-btn" onclick="switchTab('redes', this)">
+                <span class="tab-dot"></span>
+                <i class="fa-solid fa-share-nodes"></i> Redes Sociales
+            </button>
+            <button class="site-tab-btn" onclick="switchTab('pagos', this)">
+                <span class="tab-dot"></span>
+                <i class="fa-solid fa-money-bill-wave"></i> Pagos
+            </button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════
+         TAB 1 — SLIDER
+    ════════════════════════════════════════════════ -->
+        <div id="tab-slider" class="tab-panel active">
+            <div class="row g-4">
+
+                <!-- Formulario agregar slide -->
+                <div class="col-lg-4">
+                    <div class="config-card">
+                        <div class="config-card-header">
+                            <div class="header-icon"><i class="fa-solid fa-plus"></i></div>
+                            <div>
+                                <h6>Agregar Slide</h6>
+                                <p>Nueva imagen para el carrusel</p>
+                            </div>
+                        </div>
+                        <div class="config-card-body">
+                            <form th:action="@{/admin/slider/guardar}" method="post" enctype="multipart/form-data">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                                <div class="mb-3">
+                                    <label class="form-label">Imagen <span class="text-danger">*</span></label>
+                                    <div class="upload-zone" id="uzSlider">
+                                        <input type="file" name="file" id="fileSlider" accept="image/*" required>
+                                        <div class="uz-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                        <p class="text-white mb-1" style="font-size:0.85rem;">Arrastra o haz clic</p>
+                                        <p class="mb-0" style="color:var(--muted);font-size:0.75rem;">JPG · PNG · WEBP —
+                                            máx. 10 MB</p>
+                                        <div class="file-chosen" id="fnSlider" style="display:none;"></div>
+                                    </div>
+                                    <div class="preview-wrap" id="pwSlider"><img id="piSlider" src="" alt="preview">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="slTitulo">Título</label>
+                                    <input type="text" class="form-control" id="slTitulo" name="titulo"
+                                        placeholder="Ej: Corte Premium" maxlength="100" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="slDesc">Descripción</label>
+                                    <textarea class="form-control" id="slDesc" name="descripcion" rows="3"
+                                        maxlength="255" placeholder="Subtítulo del slide..."></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label" for="slOrden">Orden de visualización</label>
+                                    <input type="number" class="form-control" id="slOrden" name="orden" value="1"
+                                        min="1">
+                                    <small style="color:rgba(255,255,255,0.2);font-size:0.72rem;">Menor número = aparece
+                                        primero</small>
+                                </div>
+
+                                <button type="submit" class="btn-gold-solid">
+                                    <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Slide
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid slides -->
+                <div class="col-lg-8">
+                    <div class="section-header">
+                        <div>
+                            <h5><i class="fa-solid fa-film me-2" style="color:var(--gold);"></i>Slides del Carrusel</h5>
+                            <p>Ordenados por posición de visualización</p>
+                        </div>
+                        <a th:href="@{/admin/slider}" class="btn btn-secondary btn-sm">
+                            <i class="fa-solid fa-rotate-right me-1"></i>Recargar
+                        </a>
+                    </div>
+
+                    <div class="row g-3" th:unless="${sliderImagenes == null or #lists.isEmpty(sliderImagenes)}">
+                        <div class="col-md-6 col-xl-4" th:each="img : ${sliderImagenes}">
+                            <div class="item-card">
+                                <img th:src="${img.imagenUrl != null and !#strings.isEmpty(img.imagenUrl)
+                                           ? img.imagenUrl
+                                           : 'https://images.unsplash.com/photo-1521490683712-35a1cb235d1c?w=600&auto=format'}"
+                                    th:alt="${img.titulo}"
+                                    onerror="this.src='https://images.unsplash.com/photo-1521490683712-35a1cb235d1c?w=600&auto=format'">
+                                <div class="info">
+                                    <div class="card-title"
+                                        th:text="${img.titulo != null ? img.titulo : '(Sin título)'}"></div>
+                                    <p class="card-desc" th:text="${img.descripcion != null ? img.descripcion : ''}">
+                                    </p>
+                                </div>
+                                <div class="footer-actions">
+                                    <span class="badge-gold">
+                                        <i class="fa-solid fa-sort me-1"></i>#<span
+                                            th:text="${img.orden != null ? img.orden : 1}">1</span>
+                                    </span>
+                                    <div class="d-flex gap-2">
+                                        <!-- Toggle activo -->
+                                        <form th:action="@{/admin/slider/toggle/{id}(id=${img.id})}" method="post"
+                                            class="m-0">
+                                            <input type="hidden" th:name="${_csrf.parameterName}"
+                                                th:value="${_csrf.token}" />
+                                            <button type="submit" class="btn btn-sm"
+                                                th:class="${img.activo ? 'btn btn-sm btn-outline-success' : 'btn btn-sm btn-outline-secondary'}"
+                                                th:title="${img.activo ? 'Desactivar' : 'Activar'}">
+                                                <i class="fa-solid"
+                                                    th:class="${img.activo ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                                            </button>
+                                        </form>
+                                        <!-- Eliminar -->
+                                        <form th:action="@{/admin/slider/eliminar/{id}(id=${img.id})}" method="post"
+                                            onsubmit="return confirm('¿Eliminar esta imagen del slider?');" class="m-0">
+                                            <input type="hidden" th:name="${_csrf.parameterName}"
+                                                th:value="${_csrf.token}" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                title="Eliminar">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty-state" th:if="${sliderImagenes == null or #lists.isEmpty(sliderImagenes)}">
+                        <i class="fa-solid fa-image fa-3x"></i>
+                        <p class="text-muted mb-1">No hay slides todavía</p>
+                        <small style="color:rgba(255,255,255,0.18);">Agrega el primero usando el formulario.</small>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /tab-slider -->
+
+
+        <!-- ════════════════════════════════════════════════
+         TAB 2 — IDENTIDAD & MARCA
+    ════════════════════════════════════════════════ -->
+        <div id="tab-identidad" class="tab-panel">
+            <form th:action="@{/admin/slider/config/guardar}" method="post" enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="grupo" value="identidad" />
+
+                <div class="row g-4">
+
+                    <!-- Logo -->
+                    <div class="col-lg-5">
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="header-icon"><i class="fa-solid fa-image"></i></div>
+                                <div>
+                                    <h6>Logo de la Barbería</h6>
+                                    <p>Aparece en navbar y footer</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+                                <!-- Preview logo actual -->
+                                <div class="logo-preview-box" id="logoPreviewBox">
+                                    <img th:if="${config != null and config['logo_url'] != null}"
+                                        th:src="${config['logo_url']}" id="logoPreviewImg" alt="Logo actual">
+                                    <div th:unless="${config != null and config['logo_url'] != null}"
+                                        class="logo-placeholder" id="logoPlaceholder">
+                                        <i class="fa-solid fa-scissors fa-2x" style="color:var(--gold);"></i>
+                                        <span>Sin logo cargado</span>
+                                    </div>
+                                </div>
+
+                                <div class="upload-zone" id="uzLogo">
+                                    <input type="file" name="logoFile" id="fileLogo" accept="image/*">
+                                    <div class="uz-icon" style="font-size:1.4rem;"><i
+                                            class="fa-solid fa-cloud-arrow-up"></i></div>
+                                    <p class="text-white mb-0" style="font-size:0.82rem;">Subir nuevo logo</p>
+                                    <p class="mb-0" style="color:var(--muted);font-size:0.72rem;">PNG · SVG · WEBP
+                                        recomendado</p>
+                                    <div class="file-chosen" id="fnLogo" style="display:none;"></div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="form-label">O ingresa URL del logo</label>
+                                    <input type="text" class="form-control" name="logo_url"
+                                        th:value="${config != null ? config['logo_url'] : ''}"
+                                        placeholder="https://...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nombre, slogan, color -->
+                    <div class="col-lg-7">
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="header-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                                <div>
+                                    <h6>Nombre & Identidad Visual</h6>
+                                    <p>Textos y colores del sitio</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre de la Barbería</label>
+                                    <input type="text" class="form-control" name="nombre_barberia"
+                                        th:value="${config != null ? config['nombre_barberia'] : 'La Clásica'}"
+                                        placeholder="Ej: La Clásica" maxlength="80">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Slogan principal</label>
+                                    <input type="text" class="form-control" name="slogan"
+                                        th:value="${config != null ? config['slogan'] : ''}"
+                                        placeholder="Ej: El Arte del Buen Corte" maxlength="120">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Subtítulo del hero</label>
+                                    <textarea class="form-control" name="hero_descripcion" rows="3" maxlength="300"
+                                        th:text="${config != null ? config['hero_descripcion'] : ''}"
+                                        placeholder="Descripción breve debajo del slogan..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Etiqueta "Barbería de Élite"</label>
+                                    <input type="text" class="form-control" name="hero_tag"
+                                        th:value="${config != null ? config['hero_tag'] : 'Barbería de Élite'}"
+                                        placeholder="Ej: Barbería de Élite" maxlength="60">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">Color dorado principal</label>
+                                    <div class="color-swatch-wrap">
+                                        <input type="color" name="color_primario" id="colorPrimario"
+                                            th:value="${config != null and config['color_primario'] != null ? config['color_primario'] : '#c9a84c'}">
+                                        <input type="text" class="form-control" id="colorPrimarioText"
+                                            th:value="${config != null ? config['color_primario'] : '#c9a84c'}"
+                                            placeholder="#c9a84c" maxlength="7" style="max-width:120px;">
+                                        <span style="color:var(--muted);font-size:0.75rem;">Hex válido</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="text-end mt-2">
+                    <button type="submit" class="btn-gold-solid" style="width:auto;padding:10px 28px;">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Identidad
+                    </button>
+                </div>
+            </form>
+        </div><!-- /tab-identidad -->
+
+
+        <!-- ════════════════════════════════════════════════
+         TAB 3 — CONTACTO & HORARIOS
+    ════════════════════════════════════════════════ -->
+        <div id="tab-contacto" class="tab-panel">
+            <form th:action="@{/admin/slider/config/guardar}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="grupo" value="contacto" />
+
+                <div class="row g-4">
+
+                    <!-- Contacto -->
+                    <div class="col-lg-6">
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="header-icon"><i class="fa-solid fa-phone"></i></div>
+                                <div>
+                                    <h6>Datos de Contacto</h6>
+                                    <p>Aparecen en navbar, footer y reservas</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fa-solid fa-phone me-1" style="color:var(--gold);"></i>Teléfono
+                                        principal
+                                    </label>
+                                    <input type="text" class="form-control" name="telefono"
+                                        th:value="${config != null ? config['telefono'] : ''}"
+                                        placeholder="+51 951 578 601">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fa-solid fa-envelope me-1" style="color:var(--gold);"></i>Correo
+                                        electrónico
+                                    </label>
+                                    <input type="email" class="form-control" name="email"
+                                        th:value="${config != null ? config['email'] : ''}"
+                                        placeholder="info@laclasica.pe">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fa-solid fa-location-dot me-1"
+                                            style="color:var(--gold);"></i>Dirección
+                                    </label>
+                                    <input type="text" class="form-control" name="direccion"
+                                        th:value="${config != null ? config['direccion'] : ''}"
+                                        placeholder="Av. los Incas 650, La Victoria">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fa-solid fa-map me-1" style="color:var(--gold);"></i>Ciudad /
+                                        Referencia
+                                    </label>
+                                    <input type="text" class="form-control" name="ciudad"
+                                        th:value="${config != null ? config['ciudad'] : ''}"
+                                        placeholder="Chiclayo, Lambayeque">
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="form-label">
+                                        <i class="fa-brands fa-whatsapp me-1" style="color:#25D366;"></i>Número WhatsApp
+                                        (solo dígitos)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"
+                                            style="background:#1a1a1a;border-color:rgba(255,255,255,0.1);color:var(--muted);">+</span>
+                                        <input type="text" class="form-control" name="whatsapp_numero"
+                                            th:value="${config != null ? config['whatsapp_numero'] : ''}"
+                                            placeholder="51951578601">
+                                    </div>
+                                    <small style="color:var(--muted);font-size:0.72rem;">Incluye código de país. Ej:
+                                        51951578601</small>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horarios -->
+                    <div class="col-lg-6">
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="header-icon"><i class="fa-solid fa-clock"></i></div>
+                                <div>
+                                    <h6>Horarios de Atención</h6>
+                                    <p>Se muestran en el footer del sitio</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+
+                                <div class="horario-row">
+                                    <div class="horario-day"><i class="fa-solid fa-briefcase me-2"
+                                            style="color:var(--gold);"></i>Lunes – Viernes</div>
+                                    <input type="text" class="form-control" name="horario_semana"
+                                        th:value="${config != null ? config['horario_semana'] : '10:00 - 21:00'}"
+                                        placeholder="10:00 - 21:00">
+                                </div>
+                                <div class="horario-row">
+                                    <div class="horario-day"><i class="fa-solid fa-star me-2"
+                                            style="color:var(--gold);"></i>Sábado</div>
+                                    <input type="text" class="form-control" name="horario_sabado"
+                                        th:value="${config != null ? config['horario_sabado'] : '08:00 - 22:00'}"
+                                        placeholder="08:00 - 22:00">
+                                </div>
+                                <div class="horario-row">
+                                    <div class="horario-day"><i class="fa-regular fa-sun me-2"
+                                            style="color:var(--gold);"></i>Domingo</div>
+                                    <input type="text" class="form-control" name="horario_domingo"
+                                        th:value="${config != null ? config['horario_domingo'] : '10:00 - 18:00'}"
+                                        placeholder="10:00 - 18:00">
+                                </div>
+
+                                <div class="mt-4">
+                                    <label class="form-label">Mensaje de horario especial (opcional)</label>
+                                    <input type="text" class="form-control" name="horario_especial"
+                                        th:value="${config != null ? config['horario_especial'] : ''}"
+                                        placeholder="Ej: Cerrado feriados nacionales">
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="form-label">Texto footer copyright</label>
+                                    <input type="text" class="form-control" name="footer_copyright"
+                                        th:value="${config != null ? config['footer_copyright'] : '© 2026 BarberPro — La Clásica'}"
+                                        placeholder="© 2026 BarberPro — La Clásica">
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="form-label">Descripción footer</label>
+                                    <textarea class="form-control" name="footer_descripcion" rows="3" maxlength="200"
+                                        th:text="${config != null ? config['footer_descripcion'] : ''}"
+                                        placeholder="Definiendo el estilo del caballero moderno..."></textarea>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="text-end mt-2">
+                    <button type="submit" class="btn-gold-solid" style="width:auto;padding:10px 28px;">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Contacto & Horarios
+                    </button>
+                </div>
+            </form>
+        </div><!-- /tab-contacto -->
+
+
+        <!-- ════════════════════════════════════════════════
+         TAB 4 — REDES SOCIALES
+    ════════════════════════════════════════════════ -->
+        <div id="tab-redes" class="tab-panel">
+            <form th:action="@{/admin/slider/config/guardar}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="grupo" value="redes" />
+
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="header-icon"><i class="fa-solid fa-share-nodes"></i></div>
+                                <div>
+                                    <h6>Redes Sociales</h6>
+                                    <p>Links en navbar, footer y botón flotante</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+
+                                <div class="social-row">
+                                    <div class="social-icon fb"><i class="fa-brands fa-facebook-f"></i></div>
+                                    <div class="social-label">Facebook</div>
+                                    <input type="url" class="form-control" name="facebook_url"
+                                        th:value="${config != null ? config['facebook_url'] : ''}"
+                                        placeholder="https://facebook.com/laclasica">
+                                </div>
+
+                                <div class="social-row">
+                                    <div class="social-icon ig"><i class="fa-brands fa-instagram"></i></div>
+                                    <div class="social-label">Instagram</div>
+                                    <input type="url" class="form-control" name="instagram_url"
+                                        th:value="${config != null ? config['instagram_url'] : ''}"
+                                        placeholder="https://instagram.com/laclasica">
+                                </div>
+
+                                <div class="social-row">
+                                    <div class="social-icon wa"><i class="fa-brands fa-whatsapp"></i></div>
+                                    <div class="social-label">WhatsApp</div>
+                                    <input type="url" class="form-control" name="whatsapp_url"
+                                        th:value="${config != null ? config['whatsapp_url'] : ''}"
+                                        placeholder="https://wa.me/51951578601">
+                                </div>
+
+                                <div class="social-row">
+                                    <div class="social-icon tt"><i class="fa-brands fa-tiktok"></i></div>
+                                    <div class="social-label">TikTok</div>
+                                    <input type="url" class="form-control" name="tiktok_url"
+                                        th:value="${config != null ? config['tiktok_url'] : ''}"
+                                        placeholder="https://tiktok.com/@laclasica">
+                                </div>
+
+                                <div class="social-row" style="border-bottom:none;">
+                                    <div class="social-icon"
+                                        style="background:rgba(255,0,0,0.1);color:#FF0000;border:1px solid rgba(255,0,0,0.2);">
+                                        <i class="fa-brands fa-youtube"></i>
+                                    </div>
+                                    <div class="social-label">YouTube</div>
+                                    <input type="url" class="form-control" name="youtube_url"
+                                        th:value="${config != null ? config['youtube_url'] : ''}"
+                                        placeholder="https://youtube.com/@laclasica">
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="header-icon"><i class="fa-solid fa-circle-info"></i></div>
+                                <div>
+                                    <h6>Consejos</h6>
+                                    <p>Cómo usar correctamente los enlaces</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+                                <ul style="color:var(--muted);font-size:0.8rem;padding-left:16px;line-height:2;">
+                                    <li>Deja en <strong style="color:var(--text);">blanco</strong> para ocultar el ícono
+                                        en el sitio.</li>
+                                    <li>Para WhatsApp usa el formato <code
+                                            style="color:var(--gold);">https://wa.me/51XXXXXXXXX</code></li>
+                                    <li>Los íconos aparecen en el <strong style="color:var(--text);">footer</strong> y
+                                        en el <strong style="color:var(--text);">botón flotante</strong> de WhatsApp.
+                                    </li>
+                                    <li>Incluye siempre <code style="color:var(--gold);">https://</code> al inicio.</li>
+                                </ul>
+
+                                <div
+                                    style="background:rgba(201,168,76,0.07);border:1px solid var(--gold-border);border-radius:10px;padding:14px;margin-top:10px;">
+                                    <p style="color:var(--gold);font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+                                        <i class="fa-solid fa-lightbulb me-1"></i>Botón flotante WhatsApp
+                                    </p>
+                                    <p style="color:var(--muted);font-size:0.75rem;margin:0;">
+                                        Si configuras el número de WhatsApp en la pestaña "Contacto & Horarios", el
+                                        botón flotante verde aparecerá automáticamente en todas las páginas del sitio.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-2">
+                    <button type="submit" class="btn-gold-solid" style="width:auto;padding:10px 28px;">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Redes Sociales
+                    </button>
+                </div>
+            </form>
+        </div><!-- /tab-redes -->
+
+        <!-- ════════════════════════════════════════════════
+     TAB — PAGOS (YAPE)
+════════════════════════════════════════════════ -->
+<div id="tab-pagos" class="tab-panel">
+    <form th:action="@{/admin/slider/config/guardar}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="grupo" value="yape"/>
+
+        <div class="row g-4">
+
+            <div class="col-lg-5">
+                <div class="config-card">
+                    <div class="config-card-header">
+                        <div class="header-icon"><i class="fa-solid fa-qrcode"></i></div>
+                        <div>
+                            <h6>Código QR de Yape</h6>
+                            <p>Se muestra al cliente al pagar su reserva</p>
+                        </div>
+                    </div>
+                    <div class="config-card-body">
+                        <div class="logo-preview-box" id="yapeQrPreviewBox">
+                            <img th:if="${config != null and config['yape_qr_url'] != null and !#strings.isEmpty(config['yape_qr_url'])}"
+                                 th:src="${config['yape_qr_url']}"
+                                 id="yapeQrPreviewImg" alt="QR actual">
+                            <div th:unless="${config != null and config['yape_qr_url'] != null and !#strings.isEmpty(config['yape_qr_url'])}"
+                                 class="logo-placeholder" id="yapeQrPlaceholder">
+                                <i class="fa-solid fa-qrcode fa-2x" style="color:var(--gold);"></i>
+                                <span>Sin QR cargado</span>
+                            </div>
+                        </div>
+
+                        <div class="upload-zone" id="uzYapeQr">
+                            <input type="file" name="yapeQrFile" id="fileYapeQr" accept="image/*">
+                            <div class="uz-icon" style="font-size:1.4rem;"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                            <p class="text-white mb-0" style="font-size:0.82rem;">Subir nuevo QR</p>
+                            <p class="mb-0" style="color:var(--muted);font-size:0.72rem;">PNG · JPG — captura del QR de tu app Yape</p>
+                            <div class="file-chosen" id="fnYapeQr" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="config-card">
+                    <div class="config-card-header">
+                        <div class="header-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                        <div>
+                            <h6>Datos de Yape</h6>
+                            <p>Número, titular y porcentaje de adelanto</p>
+                        </div>
+                    </div>
+                    <div class="config-card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Número de Yape</label>
+                            <input type="text" class="form-control" name="yape_numero"
+                                   th:value="${config != null ? config['yape_numero'] : '987 654 321'}"
+                                   placeholder="987 654 321">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del titular</label>
+                            <input type="text" class="form-control" name="yape_titular"
+                                   th:value="${config != null ? config['yape_titular'] : 'Barbería La Clásica'}"
+                                   placeholder="Barbería La Clásica">
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label">% de adelanto requerido</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="yape_porcentaje" min="0" max="100"
+                                       th:value="${config != null ? config['yape_porcentaje'] : '25'}">
+                                <span class="input-group-text" style="background:#1a1a1a;border-color:rgba(255,255,255,0.1);color:var(--muted);">%</span>
+                            </div>
+                            <small style="color:var(--muted);font-size:0.72rem;">Porcentaje del total que el cliente debe adelantar para confirmar su cita.</small>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-end mt-2">
+            <button type="submit" class="btn-gold-solid" style="width:auto;padding:10px 28px;">
+                <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Datos de Yape
+            </button>
+        </div>
+    </form>
+</div><!-- /tab-pagos -->
+
+
+    </div><!-- /main-content -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        /* ── Tabs ───────────────────────────────────────────── */
+        function switchTab(name, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.site-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            btn.classList.add('active');
+            // Guardar tab activo en sessionStorage
+            sessionStorage.setItem('activeAdminTab', name);
+        }
+
+        /* ── Restaurar tab al recargar ──────────────────────── */
+        document.addEventListener('DOMContentLoaded', function () {
+            const saved = sessionStorage.getItem('activeAdminTab');
+            if (saved) {
+                const btn = [...document.querySelectorAll('.site-tab-btn')]
+                    .find(b => b.getAttribute('onclick').includes("'" + saved + "'"));
+                if (btn) switchTab(saved, btn);
+            }
+
+            /* ── Upload zones ── */
+            setupUploadZone('uzSlider', 'fileSlider', 'fnSlider', 'pwSlider', 'piSlider');
+            setupUploadZone('uzLogo', 'fileLogo', 'fnLogo', null, null, logoPreviewCallback);
+            setupUploadZone('uzPromo', 'filePromo', 'fnPromo', 'pwPromo', 'piPromo');
+            setupUploadZone('uzYapeQr', 'fileYapeQr', 'fnYapeQr', null, null, yapeQrPreviewCallback);
+
+            /* ── Sincronizar color picker ── */
+            const cp = document.getElementById('colorPrimario');
+            const cpTx = document.getElementById('colorPrimarioText');
+            if (cp && cpTx) {
+                cp.addEventListener('input', () => cpTx.value = cp.value);
+                cpTx.addEventListener('input', () => {
+                    if (/^#[0-9A-Fa-f]{6}$/.test(cpTx.value)) cp.value = cpTx.value;
+                });
+            }
+
+            /* ── Auto-cerrar alertas ── */
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(a => {
+                    bootstrap.Alert.getOrCreateInstance(a).close();
+                });
+            }, 4500);
+        });
+
+        /* ── Helper upload zone ─────────────────────────────── */
+        function setupUploadZone(zoneId, inputId, nameId, wrapId, imgId, callback) {
+            const zone = document.getElementById(zoneId);
+            const input = document.getElementById(inputId);
+            const name = document.getElementById(nameId);
+            const wrap = wrapId ? document.getElementById(wrapId) : null;
+            const img = imgId ? document.getElementById(imgId) : null;
+            if (!zone || !input) return;
+
+            input.addEventListener('change', function () {
+                if (!this.files || !this.files[0]) return;
+                name.textContent = this.files[0].name;
+                name.style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = e => {
+                    if (wrap && img) { img.src = e.target.result; wrap.style.display = 'block'; }
+                    if (callback) callback(e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
+            });
+
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault(); zone.classList.remove('drag-over');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        /* ── Preview logo especial ──────────────────────────── */
+        function logoPreviewCallback(src) {
+            const box = document.getElementById('logoPreviewBox');
+            if (!box) return;
+            box.innerHTML = `<img src="${src}" style="max-width:200px;max-height:80px;object-fit:contain;" alt="Logo nuevo">`;
+        }
+
+        function yapeQrPreviewCallback(src) {
+            const box = document.getElementById('yapeQrPreviewBox');
+            if (!box) return;
+            box.innerHTML = `<img src="${src}" style="max-width:120px;max-height:120px;object-fit:contain;" alt="QR nuevo">`;
+        }
+
+        /* ── Badge selector ─────────────────────────────────── */
+        function selectBadge(el, value) {
+            document.querySelectorAll('.badge-option').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('promoBadgeInput').value = value;
+        }
+    </script>
+
+</body>
+
+</html>

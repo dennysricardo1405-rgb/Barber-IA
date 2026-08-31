@@ -1,0 +1,441 @@
+:root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201, 168, 76, 0.15);
+    --bg: #0a0a0a;
+    --bg-card: #111111;
+    --bg-step: #161616;
+    --text: #f0ece0;
+    --text-muted: rgba(240, 236, 224, 0.5);
+    --border: rgba(201, 168, 76, 0.2);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+}
+
+/* HEADER */
+.reserva-header {
+    background: #0d0d0d;
+    border-bottom: 1px solid var(--border);
+    padding: 20px 0;
+    text-align: center;
+}
+
+.reserva-header .brand {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.6rem;
+}
+
+.reserva-header .back-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.reserva-header .back-link:hover {
+    color: var(--gold);
+}
+
+/* PROGRESS BAR */
+.progress-bar-custom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 28px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.step-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: all 0.4s;
+    flex-shrink: 0;
+}
+
+.step-dot.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.step-dot.done {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: #0a0a0a;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    transition: background 0.4s;
+    max-width: 80px;
+}
+
+.step-line.done {
+    background: var(--gold);
+}
+
+.step-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* STEPS CONTAINER */
+.steps-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+}
+
+.step-panel {
+    display: none;
+    animation: fadeUp 0.4s ease;
+}
+
+.step-panel.visible {
+    display: block;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    margin-bottom: 6px;
+}
+
+.step-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+/* CARDS DE SELECCIÓN */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.option-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+}
+
+.option-card:hover {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.option-card.selected {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.option-card .option-icon {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: var(--gold);
+}
+
+.option-card .option-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.option-card .option-detail {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.option-card .option-price {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 8px;
+}
+
+/* BARBERO CARDS */
+.barbero-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.barbero-card:hover,
+.barbero-card.selected {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.barbero-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.barbero-name {
+    font-weight: 600;
+}
+
+.barbero-sub {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* CALENDARIO Y HORAS */
+.fecha-picker {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+input[type="date"] {
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    font-size: 1rem;
+}
+
+input[type="date"]:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.horas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.hora-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.hora-btn:hover,
+.hora-btn.selected {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+/* RESUMEN */
+.resumen-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.resumen-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+}
+
+.resumen-row:last-child {
+    border-bottom: none;
+}
+
+.resumen-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.resumen-value {
+    font-weight: 600;
+}
+
+.resumen-total {
+    color: var(--gold);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* BOTONES */
+.btn-gold {
+    background: linear-gradient(135deg, var(--gold), #9a7a30);
+    color: #0a0a0a;
+    font-weight: 700;
+    border: none;
+    padding: 13px 32px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-gold:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+}
+
+.btn-gold:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 12px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.btn-outline:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+/* MODAL LOGIN */
+.modal-content {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border) !important;
+}
+
+.modal-title {
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+}
+
+.btn-close {
+    filter: invert(1) sepia(1) saturate(2) hue-rotate(20deg);
+}
+
+.modal-form-control {
+    background: #1a1a1a !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    padding: 11px 14px;
+    border-radius: 8px;
+}
+
+.modal-form-control:focus {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1) !important;
+    outline: none;
+}
+
+.modal-form-control::placeholder {
+    color: var(--text-muted) !important;
+}
+
+.modal-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.tab-nav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 11px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: var(--gold-dim);
+    color: var(--gold);
+}
+
+.alert-error {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+}

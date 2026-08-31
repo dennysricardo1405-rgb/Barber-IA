@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Sueldos Barberos | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/barberos-sueldos.css}">
+</head>
+
+<body>
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='sueldos')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <!-- Encabezado -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0" style="color:#c9a84c;">
+                        <i class="fa-solid fa-sack-dollar me-2"></i>Sueldos por Comisión
+                    </h2>
+                    <p class="text-muted m-0 small">Cada barbero recibe el 50% del total generado en citas completadas.
+                    </p>
+                </div>
+                <a href="/admin/barberos" class="btn-gold-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Volver
+                </a>
+            </div>
+
+            <!-- Selector de periodo -->
+            <form method="get" action="/admin/barberos/sueldos" class="periodo-selector">
+                <i class="fa-solid fa-calendar-days" style="color:var(--gold);"></i>
+                <label style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Periodo:</label>
+                <select name="mes" id="selectMes">
+                    <option value="1" th:selected="${periodo.monthValue == 1}">Enero</option>
+                    <option value="2" th:selected="${periodo.monthValue == 2}">Febrero</option>
+                    <option value="3" th:selected="${periodo.monthValue == 3}">Marzo</option>
+                    <option value="4" th:selected="${periodo.monthValue == 4}">Abril</option>
+                    <option value="5" th:selected="${periodo.monthValue == 5}">Mayo</option>
+                    <option value="6" th:selected="${periodo.monthValue == 6}">Junio</option>
+                    <option value="7" th:selected="${periodo.monthValue == 7}">Julio</option>
+                    <option value="8" th:selected="${periodo.monthValue == 8}">Agosto</option>
+                    <option value="9" th:selected="${periodo.monthValue == 9}">Septiembre</option>
+                    <option value="10" th:selected="${periodo.monthValue == 10}">Octubre</option>
+                    <option value="11" th:selected="${periodo.monthValue == 11}">Noviembre</option>
+                    <option value="12" th:selected="${periodo.monthValue == 12}">Diciembre</option>
+                </select>
+                <select name="anio" id="selectAnio">
+                    <option th:each="ym : ${mesesDisponibles}" th:value="${ym.year}" th:text="${ym.year}"
+                        th:selected="${ym.year == periodo.year}"
+                        th:if="${ymStat.index == 0 or ym.year != mesesDisponibles[ymStat.index - 1].year}">
+                    </option>
+                </select>
+                <button type="submit" class="btn-gold-sm">
+                    <i class="fa-solid fa-filter me-1"></i>Ver periodo
+                </button>
+                <span style="color:rgba(255,255,255,0.3); font-size:0.85rem; margin-left:8px;">
+                    Mostrando: <strong style="color:#fff;"
+                        th:text="${#temporals.format(periodo.atDay(1), 'MMMM yyyy')}">Mayo 2026</strong>
+                </span>
+            </form>
+
+            <!-- Totales generales del periodo -->
+            <div class="resumen-total">
+                <div class="total-item">
+                    <div class="total-valor" th:text="${totalCitasPeriodo}">0</div>
+                    <div class="total-label">Citas completadas</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-valor" th:text="'S/. ' + ${#numbers.formatDecimal(totalGeneralPeriodo, 1, 2)}">S/.
+                        0</div>
+                    <div class="total-label">Total generado</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-valor" style="color:#2ecc71;"
+                        th:text="'S/. ' + ${#numbers.formatDecimal(totalComisionesPeriodo, 1, 2)}">S/. 0</div>
+                    <div class="total-label">Total a pagar (50%)</div>
+                </div>
+            </div>
+
+            <!-- Cards por barbero -->
+            <div th:each="entry : ${resumen}" th:with="b=${entry.key}, datos=${entry.value}">
+                <div class="barbero-card">
+
+                    <!-- Header clickeable -->
+                    <div class="barbero-header" th:onclick="'toggleDetalle(' + ${b.id} + ')'">
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Avatar -->
+                            <div th:if="${b.imagen != null}">
+                                <img th:src="${b.imagen}" class="barbero-avatar" th:alt="${b.nombre}">
+                            </div>
+                            <div th:if="${b.imagen == null}" class="barbero-avatar">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="barbero-nombre" th:text="${b.nombre}">Carlos</div>
+                                <div class="barbero-esp" th:text="${b.especialidad ?: 'Barbero'}">Especialidad</div>
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <div class="stat-value stat-gold" th:text="${datos['totalNotas']}">0</div>
+                                <div class="stat-label">Atenciones</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value"
+                                    th:text="'S/. ' + ${#numbers.formatDecimal(datos['totalGenerado'], 1, 2)}">S/. 0
+                                </div>
+                                <div class="stat-label">Generado</div>
+                            </div>
+                        </div>
+
+                        <!-- Comisión + chevron -->
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge-comision">
+                                <i class="fa-solid fa-hand-holding-dollar me-1"></i>
+                                Pagar: S/. <span
+                                    th:text="${#numbers.formatDecimal(datos['comision'], 1, 2)}">0.00</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-down chevron" th:id="'chevron-' + ${b.id}"></i>
+                        </div>
+                    </div>
+
+                    <!-- Detalle de citas (expandible) -->
+                    <div class="citas-detalle" th:id="'detalle-' + ${b.id}">
+                        <table th:if="${!#lists.isEmpty(datos['notas'])}">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Tipo</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Comisión (50%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="nota : ${datos['notas']}">
+                                    <td th:text="${#temporals.format(nota.fecha, 'dd/MM/yyyy HH:mm')}">—</td>
+                                    <td th:text="${nota.cliente != null ? 
+                               nota.cliente.nombres + ' ' + nota.cliente.apellidos : 
+                               'Cliente sin registro'}">—</td>
+                                    <td>
+                                        <span th:if="${nota['session'] != null and nota['session'].cita != null}" style="background:rgba(46,204,113,0.12);color:#2ecc71;
+                 border:1px solid rgba(46,204,113,0.3);
+                 border-radius:12px;padding:2px 8px;font-size:0.72rem;
+                 font-weight:700;">
+                                            Reserva Web
+                                        </span>
+                                        <span th:if="${nota['session'] == null or nota['session'].cita == null}" style="background:rgba(201,168,76,0.12);color:#c9a84c;
+                 border:1px solid rgba(201,168,76,0.3);
+                 border-radius:12px;padding:2px 8px;font-size:0.72rem;
+                 font-weight:700;">
+                                            Presencial
+                                        </span>
+                                    </td>
+                                    <td class="text-end td-precio"
+                                        th:text="'S/. ' + ${#numbers.formatDecimal(nota.total, 1, 2)}">—</td>
+                                    <td class="text-end td-comision"
+                                        th:text="'S/. ' + ${#numbers.formatDecimal(nota.total * 0.50, 1, 2)}">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div th:if="${#lists.isEmpty(datos['notas'])}" class="sin-citas">
+                            <i class="fa-solid fa-calendar-xmark d-block fs-3 mb-2 opacity-25"></i>
+                            Sin atenciones en este periodo.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Estado vacío -->
+            <div th:if="${resumen.isEmpty()}" class="text-center py-5" style="color:rgba(255,255,255,0.25);">
+                <i class="fa-solid fa-users-slash d-block fs-1 mb-3 opacity-25"></i>
+                No hay barberos registrados.
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleDetalle(id) {
+            const detalle = document.getElementById('detalle-' + id);
+            const chevron = document.getElementById('chevron-' + id);
+            detalle.classList.toggle('open');
+            chevron.classList.toggle('open');
+        }
+
+        // Evitar años duplicados en el selector
+        document.addEventListener('DOMContentLoaded', () => {
+            const sel = document.getElementById('selectAnio');
+            const vistos = new Set();
+            [...sel.options].forEach(opt => {
+                if (vistos.has(opt.value)) opt.remove();
+                else vistos.add(opt.value);
+            });
+        });
+    </script>
+</body>
+
+</html>

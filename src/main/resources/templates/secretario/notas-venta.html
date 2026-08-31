@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Notas de Venta | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <style>
+        .text-gold {
+            color: #c9a84c !important;
+        }
+
+        .bg-gold-soft {
+            background: rgba(201, 168, 76, 0.1);
+        }
+
+        .nota-card {
+            background: #141414;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .nota-card:hover {
+            border-color: rgba(201, 168, 76, 0.25);
+        }
+
+        .badge-total {
+            background: rgba(46, 204, 113, 0.12);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Paginación */
+        .pagination .page-link {
+            background: #1a1a1a;
+            color: #f0ece0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pagination .page-link:hover {
+            background: #c9a84c;
+            color: #111;
+            border-color: #c9a84c;
+        }
+
+        .pagination .active .page-link {
+            background: #c9a84c;
+            color: #111;
+            border-color: #c9a84c;
+            font-weight: bold;
+        }
+
+        /* Modal */
+        .modal-content {
+            background: #111;
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            border-radius: 16px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Buscador */
+        .buscador-nota {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f0ece0;
+            border-radius: 8px;
+            padding: 8px 14px;
+        }
+
+        .buscador-nota:focus {
+            border-color: #c9a84c;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .stat-mini {
+            background: #141414;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 16px 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='notas')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold m-0 text-white">
+                        <i class="fa-solid fa-receipt me-2 text-gold"></i> Notas de Venta
+                    </h2>
+                    <p class="text-muted m-0 small">Historial de atenciones finalizadas y cuadre de ingresos</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <form th:action="@{/secretario/recepcion/notas-venta}" method="GET"
+                        class="d-flex align-items-center gap-2">
+                        <span class="text-muted small fw-bold"><i class="fa-solid fa-filter me-1"></i> Período:</span>
+                        <select name="periodo" onchange="this.form.submit()"
+                            class="form-select form-select-sm bg-dark border-secondary text-white rounded-pill px-3 fw-bold">
+                            <option value="MES" th:selected="${periodo == 'MES'}">Este Mes (Predeterminado)</option>
+                            <option value="HOY" th:selected="${periodo == 'HOY'}">Hoy</option>
+                            <option value="SEMANA" th:selected="${periodo == 'SEMANA'}">Últimos 7 Días</option>
+                            <option value="TODOS" th:selected="${periodo == 'TODOS'}">Todo el Historial</option>
+                        </select>
+                    </form>
+                    <span class="badge bg-dark border text-gold px-3 py-2 fw-semibold ms-2">
+                        <i class="fa-solid fa-scissors me-2"></i> Vista: Secretario
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPIs FINANCIEROS DEL PERÍODO -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="stat-mini p-3 rounded-3 bg-dark border border-secondary border-opacity-25 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-bold text-uppercase">Recaudación Total</span>
+                            <i class="fa-solid fa-coins text-warning fs-5"></i>
+                        </div>
+                        <h3 class="text-gold fw-bold mb-0"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalRecaudado, 1, 2)}">S/ 0.00</h3>
+                        <small class="text-muted" style="font-size: 0.72rem;">Ingreso neto del período</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-mini p-3 rounded-3 bg-dark border border-secondary border-opacity-25 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-bold text-uppercase">Yape / Digital</span>
+                            <i class="fa-solid fa-mobile-screen-button text-info fs-5"></i>
+                        </div>
+                        <h3 class="text-info fw-bold mb-0" th:text="'S/ ' + ${#numbers.formatDecimal(totalYape, 1, 2)}">
+                            S/ 0.00</h3>
+                        <small class="text-muted" style="font-size: 0.72rem;">Pagos digitales acumulados</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-mini p-3 rounded-3 bg-dark border border-secondary border-opacity-25 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-bold text-uppercase">Efectivo / Caja</span>
+                            <i class="fa-solid fa-money-bill-wave text-success fs-5"></i>
+                        </div>
+                        <h3 class="text-success fw-bold mb-0"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalEfectivo, 1, 2)}">S/ 0.00</h3>
+                        <small class="text-muted" style="font-size: 0.72rem;">Efectivo recaudado en caja</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-mini p-3 rounded-3 bg-dark border border-secondary border-opacity-25 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small fw-bold text-uppercase">Atenciones</span>
+                            <i class="fa-solid fa-scissors text-white fs-5"></i>
+                        </div>
+                        <h3 class="text-white fw-bold mb-0" th:text="${cantidadNotas}">0</h3>
+                        <small class="text-muted" style="font-size: 0.72rem;">Notas de venta emitidas</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <input type="text" class="buscador-nota w-auto" placeholder="🔍 Buscar por cliente, DNI o barbero..."
+                    oninput="filtrarNotas(this.value)" />
+            </div>
+
+            <div class="card border-0 rounded-3"
+                style="background:#111; border:1px solid rgba(255,255,255,0.05) !important">
+                <div class="card-header bg-dark border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="m-0 fw-bold text-white">
+                        <i class="fa-solid fa-list me-2 text-gold"></i> Listado
+                    </h5>
+                    <span class="badge bg-secondary font-monospace" th:text="${totalItems} + ' registros'">0
+                        registros</span>
+                </div>
+
+                <div class="card-body p-0">
+
+                    <div th:if="${!notas.isEmpty()}" class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tablaNotas">
+                            <thead style="background:#0d0d0d">
+                                <tr>
+                                    <th class="ps-4 text-muted small text-uppercase py-3" style="letter-spacing:.5px">#
+                                    </th>
+                                    <th class="text-muted small text-uppercase py-3" style="letter-spacing:.5px">Fecha
+                                    </th>
+                                    <th class="text-muted small text-uppercase py-3" style="letter-spacing:.5px">Cliente
+                                    </th>
+                                    <th class="text-muted small text-uppercase py-3" style="letter-spacing:.5px">Barbero
+                                    </th>
+                                    <th class="text-muted small text-uppercase py-3 text-end"
+                                        style="letter-spacing:.5px">Total</th>
+                                    <th class="text-muted small text-uppercase py-3 text-center"
+                                        style="letter-spacing:.5px">Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="nota : ${notas}" class="fila-nota"
+                                    th:data-cliente="${nota.cliente != null ? nota.cliente.nombres + ' ' + nota.cliente.apellidos : ''}"
+                                    th:data-barbero="${nota.barbero != null ? nota.barbero.nombre : ''}"
+                                    style="border-bottom:1px solid rgba(255,255,255,0.04)">
+
+                                    <td class="ps-4 text-muted font-monospace small" th:text="'#' + ${nota.id}"></td>
+
+                                    <td>
+                                        <div class="text-white small fw-600"
+                                            th:text="${#temporals.format(nota.fecha, 'dd/MM/yyyy')}"></div>
+                                        <div class="text-muted" style="font-size:0.75rem"
+                                            th:text="${#temporals.format(nota.fecha, 'HH:mm')} + ' hrs'"></div>
+                                    </td>
+
+                                    <td>
+                                        <div th:if="${nota.cliente != null}" class="d-flex align-items-center gap-2">
+                                            <div style="width:30px;height:30px;border-radius:50%;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;color:#c9a84c;font-weight:700;font-size:0.78rem;flex-shrink:0"
+                                                th:text="${nota.cliente != null and nota.cliente.nombres != null and !nota.cliente.nombres.isEmpty() ? #strings.substring(nota.cliente.nombres,0,1) : '?'}">?</div>
+                                            <div>
+                                                <div class="text-white small fw-600"
+                                                    th:text="${nota.cliente.nombres + ' ' + nota.cliente.apellidos}">
+                                                </div>
+                                                <div class="text-muted font-monospace" style="font-size:0.75rem"
+                                                    th:text="${nota.cliente.dni}"></div>
+                                            </div>
+                                        </div>
+                                        <span th:if="${nota.cliente == null}" class="text-muted small">Sin
+                                            registro</span>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-dark border text-light px-2 py-1 small"
+                                            th:text="${nota.barbero != null ? '💈 ' + nota.barbero.nombre : '—'}"></span>
+                                    </td>
+
+                                    <td class="text-end">
+                                        <div class="mb-1">
+                                            <span th:if="${nota.metodoPago == 'EFECTIVO'}"
+                                                class="badge bg-opacity-10 bg-success text-success border border-success border-opacity-25"
+                                                style="font-size: 0.68rem; padding: 3px 8px;">
+                                                <i class="fa-solid fa-money-bill-wave me-1"></i> EFECTIVO
+                                            </span>
+                                            <span th:if="${nota.metodoPago == 'YAPE'}"
+                                                class="badge bg-opacity-10 bg-info text-info border border-info border-opacity-25"
+                                                style="font-size: 0.68rem; padding: 3px 8px;">
+                                                <i class="fa-solid fa-mobile-screen me-1"></i> YAPE / PLIN
+                                            </span>
+                                            <span th:if="${nota.metodoPago == 'MIXTO'}"
+                                                class="badge bg-opacity-10 bg-warning text-warning border border-warning border-opacity-25"
+                                                style="font-size: 0.68rem; padding: 3px 8px;">
+                                                <i class="fa-solid fa-credit-card me-1"></i> MIXTO
+                                            </span>
+                                        </div>
+                                        <span class="badge-total"
+                                            th:text="'S/ ' + ${#numbers.formatDecimal(nota.total, 1, 2)}"></span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-bold"
+                                            style="font-size:0.78rem"
+                                            th:attr="onclick='verDetalle(' + ${nota.id} + ')'">
+                                            <i class="fa-solid fa-receipt me-1"></i> Desglosar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div th:if="${notas.isEmpty()}" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-receipt d-block fs-2 mb-2 opacity-25"></i>
+                        <p class="mb-0">No hay notas de venta registradas aún.</p>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-dark border-0 py-3" th:if="${totalPages > 0}">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <span class="text-muted me-2 small">Mostrar</span>
+                            <select class="form-select form-select-sm d-inline-block w-auto"
+                                onchange="cambiarTamano(this.value)">
+                                <option value="10" th:selected="${size} == 10">10</option>
+                                <option value="15" th:selected="${size} == 15">15</option>
+                                <option value="20" th:selected="${size} == 20">20</option>
+                                <option value="50" th:selected="${size} == 50">50</option>
+                            </select>
+                            <span class="text-muted ms-2 small">por página</span>
+                        </div>
+
+                        <nav aria-label="Paginación" th:if="${totalPages > 0}">
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/secretario/recepcion/notas-venta(periodo=${periodo}, page=${currentPage-1}, size=${size})}"
+                                        th:if="${currentPage > 0}">← Anterior</a>
+                                    <span class="page-link" th:if="${currentPage == 0}">← Anterior</span>
+                                </li>
+                                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages > 0 ? totalPages - 1 : 0)}"
+                                    th:classappend="${i == currentPage} ? 'active'">
+                                    <a class="page-link"
+                                        th:href="@{/secretario/recepcion/notas-venta(periodo=${periodo}, page=${i}, size=${size})}"
+                                        th:text="${i + 1}"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage >= totalPages-1} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/secretario/recepcion/notas-venta(periodo=${periodo}, page=${currentPage+1}, size=${size})}"
+                                        th:if="${currentPage < totalPages-1}">Siguiente →</a>
+                                    <span class="page-link" th:if="${currentPage >= totalPages-1}">Siguiente →</span>
+                                </li>
+                            </ul>
+                        </nav>
+
+                        <div class="text-muted small">
+                            Página <span class="fw-bold" th:text="${totalPages > 0 ? currentPage + 1 : 0}"></span> de <span class="fw-bold"
+                                th:text="${totalPages}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetalle" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-gold fw-bold">
+                        <i class="fa-solid fa-receipt me-2"></i>
+                        Nota de Venta <span id="mdlNotaId" class="font-monospace"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <div
+                                style="background:#0d0d0d; border-radius:8px; padding:10px 14px; border: 1px solid rgba(255,255,255,0.02);">
+                                <div class="text-white-50 text-uppercase"
+                                    style="font-size: 0.7rem; letter-spacing: 0.5px;">Fecha / Hora</div>
+                                <div class="text-white fw-bold mt-1" id="mdlFecha" style="font-size: 0.85rem;">—</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div
+                                style="background:#0d0d0d; border-radius:8px; padding:10px 14px; border: 1px solid rgba(255,255,255,0.02);">
+                                <div class="text-white-50 text-uppercase"
+                                    style="font-size: 0.7rem; letter-spacing: 0.5px;">Cliente Registrado</div>
+                                <div class="text-gold fw-bold mt-1" id="mdlCliente" style="font-size: 0.85rem;">—</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div
+                                style="background:#0d0d0d; border-radius:8px; padding:10px 14px; border: 1px solid rgba(255,255,255,0.02);">
+                                <div class="text-white-50 text-uppercase"
+                                    style="font-size: 0.7rem; letter-spacing: 0.5px;">Atendido Por</div>
+                                <div class="text-white fw-bold mt-1" id="mdlBarbero" style="font-size: 0.85rem;">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 mb-3 rounded-3"
+                        style="background: #0a0a0f; border: 1px solid rgba(201, 168, 76, 0.15);">
+                        <h6 class="text-uppercase fw-bold mb-2"
+                            style="color: #c9a84c; font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-wallet me-2"></i>Estructura Financiera del Pago
+                        </h6>
+                        <div class="row text-center g-2">
+                            <div class="col-6 col-sm-3">
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02);">
+                                    <small class="text-muted d-block" style="font-size: 0.68rem;">Método
+                                        Utilizado</small>
+                                    <span id="mdlMetodoPago" class="fw-bold text-white small">—</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02);">
+                                    <small class="text-muted d-block" style="font-size: 0.68rem;">Caja
+                                        (Efectivo)</small>
+                                    <span id="mdlMontoEfectivo" class="fw-bold text-success small">S/ 0.00</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02);">
+                                    <small class="text-muted d-block" style="font-size: 0.68rem;">Banco
+                                        (Digital)</small>
+                                    <span id="mdlMontoYape" class="fw-bold text-info small">S/ 0.00</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02);">
+                                    <small class="text-muted d-block" style="font-size: 0.68rem;">Ref. Operación</small>
+                                    <span id="mdlCodigoYape" class="font-monospace fw-bold text-warning small"
+                                        style="font-size: 0.75rem !important;">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive rounded-3" style="border:1px solid rgba(255,255,255,0.06)">
+                        <table class="table table-dark align-middle mb-0 small">
+                            <thead style="background:#0a0a0a">
+                                <tr>
+                                    <th class="text-muted text-uppercase py-2 ps-3"
+                                        style="font-size:0.72rem;letter-spacing:.5px">Descripción del Item</th>
+                                    <th class="text-muted text-uppercase py-2 text-center"
+                                        style="font-size:0.72rem;letter-spacing:.5px">Cant.</th>
+                                    <th class="text-muted text-uppercase py-2 text-end"
+                                        style="font-size:0.72rem;letter-spacing:.5px">Precio U.</th>
+                                    <th class="text-muted text-uppercase py-2 text-end pe-3"
+                                        style="font-size:0.72rem;letter-spacing:.5px">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mdlDetalles"></tbody>
+                            <tfoot>
+                                <tr style="border-top:1px solid rgba(201,168,76,0.3)">
+                                    <td colspan="3" class="text-end fw-bold text-gold pe-3 py-3">TOTAL RECAUDADO</td>
+                                    <td class="text-end fw-bold text-success pe-3 py-3 fs-5 font-monospace"
+                                        id="mdlTotal">S/ 0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary text-white btn-sm rounded-pill px-4"
+                        data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const modalDetalle = new bootstrap.Modal(document.getElementById('modalDetalle'));
+
+        function filtrarNotas(texto) {
+            document.querySelectorAll('.fila-nota').forEach(fila => {
+                const cliente = (fila.dataset.cliente || '').toLowerCase();
+                const barbero = (fila.dataset.barbero || '').toLowerCase();
+                fila.style.display =
+                    cliente.includes(texto.toLowerCase()) || barbero.includes(texto.toLowerCase())
+                        ? '' : 'none';
+            });
+        }
+
+        function verDetalle(notaId) {
+            // ✅ Consume el controlador con la ruta unificada herencia de la clase @RequestMapping("/secretario")
+            fetch(`/secretario/recepcion/notas-venta/${notaId}/detalle`)
+                .then(r => r.json())
+                .then(data => {
+                    // Mapeo de datos básicos blindados
+                    document.getElementById('mdlNotaId').textContent = '#' + data.id;
+                    document.getElementById('mdlFecha').textContent = data.fecha || '—';
+                    document.getElementById('mdlCliente').textContent = data.cliente || 'Sin registro';
+                    document.getElementById('mdlBarbero').textContent = data.barbero || '—';
+                    document.getElementById('mdlTotal').textContent = 'S/ ' + Number(data.total || 0).toFixed(2);
+
+                    // ── MAPEO DE LOS CAMPOS FINANCIEROS AUDITABLES ──
+                    document.getElementById('mdlMetodoPago').textContent = data.metodoPago || 'EFECTIVO';
+                    document.getElementById('mdlMontoEfectivo').textContent = 'S/ ' + Number(data.montoEfectivo || 0).toFixed(2);
+                    document.getElementById('mdlMontoYape').textContent = 'S/ ' + Number(data.montoYape || 0).toFixed(2);
+                    document.getElementById('mdlCodigoYape').textContent = data.codigoYape && String(data.codigoYape).trim() !== '' ? data.codigoYape : '—';
+
+                    // Estilos dinámicos cromáticos según el flujo monetario
+                    const mLabel = document.getElementById('mdlMetodoPago');
+                    if (data.metodoPago === 'MIXTO') mLabel.style.color = '#f1c40f';
+                    else if (data.metodoPago === 'YAPE') mLabel.style.color = '#3498db';
+                    else mLabel.style.color = '#2ecc71';
+
+                    // Renderizado controlado del cuerpo de items consumidos
+                    const tbody = document.getElementById('mdlDetalles');
+                    tbody.innerHTML = '';
+
+                    if (data.detalles && data.detalles.length > 0) {
+                        data.detalles.forEach(d => {
+                            const esServicio = d.tipo === 'SERVICIO';
+                            tbody.innerHTML += `
+                                <tr style="${esServicio ? 'background:rgba(201,168,76,0.06)' : ''}">
+                                    <td class="ps-3">
+                                        ${esServicio
+                                    ? '<i class="fa-solid fa-scissors me-2 text-gold" style="font-size:0.75rem"></i>'
+                                    : '<i class="fa-solid fa-box me-2 text-muted" style="font-size:0.75rem"></i>'}
+                                        <span class="${esServicio ? 'text-gold fw-bold' : 'text-white'}">${d.descripcion || 'Item sin nombre'}</span>
+                                    </td>
+                                    <td class="text-center text-muted">${d.cantidad || 1}</td>
+                                    <td class="text-end text-muted font-monospace">S/ ${Number(d.precioUnitario || 0).toFixed(2)}</td>
+                                    <td class="text-end text-success fw-bold font-monospace pe-3">S/ ${Number(d.subtotal || 0).toFixed(2)}</td>
+                                </tr>`;
+                        });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">No hay detalles registrados para esta venta.</td></tr>`;
+                    }
+
+                    modalDetalle.show();
+                })
+                .catch((err) => {
+                    console.error("Error en el mapeo del modal:", err);
+                    alert('Error al cargar el desglose detallado de la nota.');
+                });
+        }
+
+        function cambiarTamano(size) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const periodo = urlParams.get('periodo') || 'MES';
+            window.location.href = `/secretario/recepcion/notas-venta?periodo=${periodo}&page=0&size=${size}`;
+        }
+    </script>
+</body>
+
+</html>

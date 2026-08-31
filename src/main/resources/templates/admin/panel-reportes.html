@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Auditoría de Cuentas | La Clásica</title>
+
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <style>
+        .stat-card h6 {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .form-label {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            background-color: #1e1e1e !important;
+            border: 1px solid rgba(255, 255, 255, 0.07) !important;
+            color: #f0f0f0 !important;
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+
+        .page-link {
+            background-color: #242424 !important;
+            border-color: rgba(255, 255, 255, 0.07) !important;
+            color: #ff6b2b !important;
+        }
+
+        .page-item.active .page-link {
+            background-color: #ff6b2b !important;
+            border-color: #ff6b2b !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='reportes')}"></div>
+
+    <div class="main-content">
+        <div class="container-fluid p-0">
+
+            <div class="mb-4">
+                <h2 class="fw-bold m-0" style="font-family: 'Barlow Condensed', sans-serif; color:#ff6b2b;">
+                    <i class="fa-solid fa-cash-register me-2" style="color:#ff6b2b;"></i> MOTOR DE AUDITORÍA FISCAL
+                    MULTICRITERIO
+                </h2>
+                <p class="text-muted m-0 small mt-1">Filtre y concilie flujos de caja cruzando canales de venta y
+                    pasarelas de pago.</p>
+            </div>
+
+            <form th:action="@{/admin/reportes}" method="GET" class="card p-4 mb-4 border-0">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Tipo de Flujo *</label>
+                        <select name="tipoOperacion" class="form-select" required>
+                            <option value="" th:selected="${tipoOperacion == null}">[ Seleccione ]</option>
+                            <option value="TODOS" th:selected="${tipoOperacion == 'TODOS'}">Todo (Ingresos y Egresos)
+                            </option>
+                            <option value="SERVICIOS" th:selected="${tipoOperacion == 'SERVICIOS'}">Servicios (Citas en
+                                Silla)</option>
+                            <option value="PRODUCTOS" th:selected="${tipoOperacion == 'PRODUCTOS'}">Venta de Productos
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Desde</label>
+                        <input type="date" name="fechaInicio" th:value="${fechaInicio}" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Hasta</label>
+                        <input type="date" name="fechaFin" th:value="${fechaFin}" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Canal / Origen</label>
+                        <select name="origen" class="form-select">
+                            <option value="TODOS" th:selected="${origen == 'TODOS'}">Todos</option>
+                            <option value="WEB" th:selected="${origen == 'WEB'}">Reserva Web (Ecommerce)</option>
+                            <option value="PRESENCIAL" th:selected="${origen == 'PRESENCIAL'}">Presencial (En Local)
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Método Pago</label>
+                        <select name="metodoPago" class="form-select">
+                            <option value="TODOS" th:selected="${metodoPago == 'TODOS'}">Todos</option>
+                            <option value="EFECTIVO" th:selected="${metodoPago == 'EFECTIVO'}">Solo Efectivo</option>
+                            <option value="YAPE" th:selected="${metodoPago == 'YAPE'}">Solo Yape</option>
+                            <option value="MIXTO" th:selected="${metodoPago == 'MIXTO'}">Pago Mixto</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="row g-3 mb-4" th:if="${tipoOperacion != 'TODOS'}">
+                <div class="col-md-3">
+                    <div class="card stat-card p-4 border-start border-4 border-success">
+                        <h6 class="text-uppercase m-0">Recaudación en Efectivo</h6>
+                        <h2 class="text-success fw-bold m-0 mt-2"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalEfectivo, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-4 border-start border-4 border-info">
+                        <h6 class="text-uppercase m-0">Recaudación por Yape</h6>
+                        <h2 class="text-info fw-bold m-0 mt-2"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalYape, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-4 border-start border-4 border-danger">
+                        <h6 class="text-uppercase m-0">Recaudación Mixta (sin desglosar)</h6>
+                        <h2 class="text-danger fw-bold m-0 mt-2"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalMixto, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-4 border-start border-4 border-warning">
+                        <h6 class="text-uppercase m-0">Monto Total Recaudado (Criterio)</h6>
+                        <h2 class="text-warning fw-bold m-0 mt-2"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalFiltrado, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4" th:if="${tipoOperacion == 'TODOS'}">
+                <div class="col-md-4">
+                    <div class="card stat-card p-4 border-start border-4 border-success">
+                        <h6 class="text-uppercase m-0">Total Ingresos</h6>
+                        <h2 class="text-success fw-bold m-0 mt-2"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalIngresos, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-4 border-start border-4 border-danger">
+                        <h6 class="text-uppercase m-0">Total Egresos</h6>
+                        <h2 class="text-danger fw-bold m-0 mt-2"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalEgresos, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-4 border-start border-4 border-warning">
+                        <h6 class="text-uppercase m-0">Balance Neto</h6>
+                        <h2 class="fw-bold m-0 mt-2" th:classappend="${totalNeto >= 0} ? 'text-warning' : 'text-danger'"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(totalNeto, 1, 2)}">S/ 0.00</h2>
+                    </div>
+                </div>
+            </div>
+
+            <form th:if="${tipoOperacion == 'TODOS'}" th:action="@{/admin/reportes/gasto}" method="POST"
+                class="card p-3 mb-4 border-0">
+                <div class="row g-2 align-items-end">
+                    <input type="hidden" name="tipoOperacion" value="TODOS">
+                    <input type="hidden" name="fechaInicio" th:value="${fechaInicio}">
+                    <input type="hidden" name="fechaFin" th:value="${fechaFin}">
+                    <input type="hidden" name="origen" th:value="${origen}">
+                    <input type="hidden" name="metodoPago" th:value="${metodoPago}">
+
+                    <div class="col-md-5">
+                        <label class="form-label">Descripción del Egreso</label>
+                        <input type="text" name="descripcion" class="form-control"
+                            placeholder="Ej: Pago de luz, alquiler local..." required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Monto (S/)</label>
+                        <input type="number" name="monto" step="0.01" min="0.01" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-danger w-100 py-2">
+                            <i class="fa-solid fa-plus me-1"></i> Agregar Egreso
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card p-3">
+                <div class="table-responsive">
+
+                    <div th:if="${tipoOperacion == null || tipoOperacion.isEmpty()}"
+                        class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-circle-info d-block fs-1 mb-2 text-primary"></i>
+                        <p class="m-0 fw-semibold">Configure los filtros superiores y presione el botón para desplegar
+                            los registros.</p>
+                    </div>
+
+                    <table th:if="${tipoOperacion == 'SERVICIOS'}" id="tablaServicios"
+                        class="table table-hover align-middle mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th class="ps-2">Origen</th>
+                                <th>Código</th>
+                                <th>Cliente</th>
+                                <th>Barbero Atendió</th>
+                                <th>Fecha</th>
+                                <th>Tipo de Pago</th>
+                                <th class="text-end">Monto Cobrado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${citasFiltradas}">
+                                <td class="ps-2">
+                                    <span th:if="${c.origen == 'NOTA_VENTA'}" class="badge bg-success">Presencial</span>
+                                    <span th:if="${c.origen == 'RESERVA_WEB'}" class="badge bg-primary">Reserva
+                                        Web</span>
+                                </td>
+                                <td class="font-monospace text-primary"
+                                    th:text="${c.origen == 'NOTA_VENTA'} ? '#NV-' + ${c.id} : '#SRV-' + ${c.id}"></td>
+                                <td>
+                                    <span th:text="${c.cliente}" class="fw-bold text-white"></span>
+                                </td>
+                                <td th:text="${c.barbero}"></td>
+                                <td th:text="${c.fecha}"></td>
+                                <td>
+                                    <span th:if="${c.montoEfectivo > 0 && c.montoYape > 0}"
+                                        class="badge bg-danger">Mixto</span>
+                                    <span th:if="${c.montoEfectivo > 0 && c.montoYape == 0}"
+                                        class="badge bg-success">Efectivo</span>
+                                    <span th:if="${c.montoYape > 0 && c.montoEfectivo == 0}"
+                                        class="badge bg-info">Yape</span>
+                                </td>
+                                <td class="text-end font-monospace fw-bold text-white"
+                                    th:text="'S/ ' + ${#numbers.formatDecimal(c.totalPrecio, 1, 2)}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table th:if="${tipoOperacion == 'PRODUCTOS'}" id="tablaProductos"
+                        class="table table-hover align-middle mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th class="ps-2">Fecha / Hora</th>
+                                <th>Canal / Venta</th>
+                                <th>Origen / Cliente</th>
+                                <th>Descripción del Movimiento</th>
+                                <th>Tipo de Pago</th>
+                                <th class="text-end pe-2">Monto Recaudado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${productosFiltrados}">
+                                <td class="ps-2 font-monospace text-muted small"
+                                    th:text="${p.fecha != null ? p.fecha : '---'}"></td>
+                                <td>
+                                    <span th:if="${p.canal == 'PRESENCIAL'}" class="badge bg-success">Tienda
+                                        Física</span>
+                                    <span th:if="${p.canal == 'WEB'}" class="badge bg-primary">Ecommerce Web</span>
+                                </td>
+                                <td><span th:text="${p.cliente}" class="fw-bold text-white"></span></td>
+                                <td th:text="${p.detalle}"></td>
+                                <td><span th:text="${p.formaPago}" class="badge bg-light text-dark"></span></td>
+                                <td class="text-end fw-bold text-warning pe-2"
+                                    th:text="'S/ ' + ${#numbers.formatDecimal(p.monto, 1, 2)}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table th:if="${tipoOperacion == 'TODOS'}" id="tablaTodos"
+                        class="table table-hover align-middle mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th class="ps-2">Fecha</th>
+                                <th>Tipo</th>
+                                <th>Categoría</th>
+                                <th>Descripción</th>
+                                <th class="text-end pe-2">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${movimientos}">
+                                <td class="ps-2 font-monospace text-muted small" th:text="${m.fecha}"></td>
+                                <td>
+                                    <span th:if="${m.tipoMovimiento == 'INGRESO'}"
+                                        class="badge bg-success">Ingreso</span>
+                                    <span th:if="${m.tipoMovimiento == 'EGRESO'}" class="badge bg-danger">Egreso</span>
+                                </td>
+                                <td th:text="${m.categoria}" class="text-white"></td>
+                                <td th:text="${m.descripcion}"></td>
+                                <td class="text-end pe-2 fw-bold font-monospace"
+                                    th:classappend="${m.tipoMovimiento == 'INGRESO'} ? 'text-success' : 'text-danger'"
+                                    th:text="(${m.tipoMovimiento == 'INGRESO'} ? '+ S/ ' : '- S/ ') + ${#numbers.formatDecimal(m.monto, 1, 2)}">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetallePago" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-light">
+                <div class="modal-header border-0 py-3">
+                    <h5 class="modal-title fw-bold text-white"><i class="fa-solid fa-receipt text-primary me-2"></i>
+                        desglose fiscal del comprobante</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 py-2">
+                        <span class="text-muted">Monto en Efectivo Físico:</span>
+                        <span id="detEfec" class="font-monospace fw-bold text-success">S/ 0.00</span>
+                    </div>
+                    <div
+                        class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 py-2 mt-2">
+                        <span class="text-muted">Monto en Yape / Banca Celular:</span>
+                        <span id="detYp" class="font-monospace fw-bold text-info">S/ 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2 border-top border-primary mt-3 fw-bold fs-5">
+                        <span class="text-primary">TOTAL DE LA OPERACIÓN:</span>
+                        <span id="detTot" class="font-monospace text-white">S/ 0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function verDetalleOperacion(btn) {
+            var efec = parseFloat(btn.getAttribute('data-efec') || 0);
+            var yp = parseFloat(btn.getAttribute('data-yp') || 0);
+            var tot = parseFloat(btn.getAttribute('data-tot') || 0);
+
+            document.getElementById('detEfec').innerText = 'S/ ' + efec.toFixed(2);
+            document.getElementById('detYp').innerText = 'S/ ' + yp.toFixed(2);
+            document.getElementById('detTot').innerText = 'S/ ' + tot.toFixed(2);
+
+            var el = document.getElementById('modalDetallePago');
+            var modal = new window.bootstrap.Modal(el);
+            modal.show();
+        }
+
+        $(document).ready(function () {
+            var configuracionIdioma = {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado)",
+                "search": "Buscar:",
+                "paginate": {
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            };
+
+            if ($('#tablaServicios').length) {
+                $('#tablaServicios').DataTable({
+                    "language": configuracionIdioma,
+                    "pageLength": 10,
+                    "order": []
+                });
+            }
+
+            if ($('#tablaProductos').length) {
+                $('#tablaProductos').DataTable({
+                    "language": configuracionIdioma,
+                    "pageLength": 10,
+                    "order": []
+                });
+            }
+
+            if ($('#tablaTodos').length) {
+                $('#tablaTodos').DataTable({
+                    "language": configuracionIdioma,
+                    "pageLength": 10,
+                    "order": []
+                });
+            }
+
+            var inputDesde = document.querySelector('input[name="fechaInicio"]');
+            var inputHasta = document.querySelector('input[name="fechaFin"]');
+
+            function sincronizarFechas() {
+                if (inputDesde.value) {
+                    inputHasta.setAttribute('min', inputDesde.value);
+                }
+                if (inputHasta.value) {
+                    inputDesde.setAttribute('max', inputHasta.value);
+                }
+            }
+
+            inputDesde.addEventListener('change', sincronizarFechas);
+            inputHasta.addEventListener('change', sincronizarFechas);
+
+            sincronizarFechas();
+
+            document.querySelector('form').addEventListener('submit', function (e) {
+                if (inputDesde.value && inputHasta.value && inputHasta.value < inputDesde.value) {
+                    e.preventDefault();
+                    alert('La fecha "Hasta" no puede ser anterior a la fecha "Desde".');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

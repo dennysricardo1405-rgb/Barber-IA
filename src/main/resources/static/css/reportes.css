@@ -1,0 +1,101 @@
+body {
+    background-color: #0b0b0d !important;
+    color: #e0ece0 !important;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.main-content {
+    background-color: #0b0b0d !important;
+}
+
+/* Títulos y Subtítulos */
+h2, .text-white {
+    color: #f0ece0 !important;
+}
+
+.text-white-50 {
+    color: rgba(240, 236, 224, 0.6) !important;
+}
+
+/* Card de Filtros Principal */
+.card-filtros-premium {
+    background: #141414 !important;
+    border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    border-radius: 12px !important;
+}
+
+/* Inputs y Selects del Filtro (Fondo oscuro, texto limpio, sin blanco chillón) */
+.input-dark {
+    background-color: #1a1a1a !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #e0ece0 !important;
+    border-radius: 8px !important;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.input-dark:focus {
+    background-color: #222222 !important;
+    color: #ffffff !important;
+    border-color: #c9a84c !important;
+    box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2) !important;
+}
+
+/* Cards de Dinero / KPIs */
+.card-kpi {
+    background: #141414 !important;
+    border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    border-radius: 12px !important;
+    padding: 22px !important;
+}
+
+/* Estilización Avanzada de la Tabla (Quitando el blanco plano) */
+.table-custom-dark {
+    background-color: #141414 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-custom-dark thead th {
+    background-color: #000000 !important;
+    color: rgba(240, 236, 224, 0.5) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.8px;
+    padding: 14px 16px !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.table-custom-dark tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+.table-custom-dark tbody td {
+    color: #c4c4c4 !important; /* Gris suave en lugar de blanco puro */
+    padding: 14px 16px !important;
+    font-size: 0.85rem;
+}
+
+/* Paginador de DataTables (Combinando perfectamente con Sueldos) */
+.dataTables_wrapper .dataTables_length select, 
+.dataTables_wrapper .dataTables_filter input {
+    background: #1a1a1a !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: #e0ece0 !important;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+.page-link {
+    background-color: #141414 !important;
+    border-color: rgba(255,255,255,0.03) !important;
+    color: #c9a84c !important;
+}
+
+.page-item.active .page-link {
+    background-color: #c9a84c !important;
+    border-color: #c9a84c !important;
+    color: #0b0b0d !important;
+    font-weight: bold;
+}

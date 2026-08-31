@@ -1,0 +1,131 @@
+/* Estilos personalizados para el Módulo de Compras Premium */
+.bg-card-dark {
+    background-color: #242424 !important;
+}
+
+.bg-dark-custom {
+    background-color: #1e1e1e !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.form-label-custom {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-uppercase: true;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.custom-input {
+    background-color: #1e1e1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    color: #f0f0f0 !important;
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.custom-input:focus {
+    border-color: #ff6b2b !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 43, 0.12) !important;
+}
+
+.bg-dark-input {
+    background-color: #141414 !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.card-inner-setup {
+    background-color: #191919;
+    border-left: 4px solid #ff6b2b;
+}
+
+/* Reemplazamos el punto por una 'd' de decimal */
+.px-2d5 {
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
+}
+
+.py-1d5 {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+/* Botones rectangulares selectores */
+.btn-selector-custom {
+    background-color: #1e1e1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease-in-out;
+    border-radius: 8px;
+}
+
+.btn-selector-custom:hover {
+    border-color: rgba(255, 107, 43, 0.5) !important;
+    color: #fff !important;
+}
+
+/* Estado seleccionado (Naranja Premium) */
+.btn-selector-custom.active {
+    background-color: rgba(255, 107, 43, 0.15) !important;
+    border-color: #ff6b2b !important;
+    color: #ff6b2b !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 43, 0.1) !important;
+}
+
+.btn-pag {
+    background: #212126;
+    color: #ffffff;
+    border: 0;
+    border-radius: 4px;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-pag:hover {
+    background: #ff6b2b;
+    color: #fff;
+}
+
+.btn-pag.active {
+    background: #ff6b2b;
+    color: #fff;
+    font-weight: bold;
+}
+
+.btn-pag.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.select-size {
+    background: #212126;
+    color: #fff;
+    border: 1px solid #2d2d35;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+.select-size:focus {
+    outline: none;
+    border-color: #ff6b2b;
+}
+
+/* Badge compra directa */
+.badge-directa {
+    background: rgba(255, 107, 43, 0.15);
+    color: #ff6b2b;
+    border: 1px solid rgba(255, 107, 43, 0.3);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}

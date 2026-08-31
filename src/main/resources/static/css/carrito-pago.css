@@ -1,0 +1,88 @@
+.item-pedido {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.item-pedido:last-child {
+    border-bottom: none;
+}
+
+.item-pedido img {
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+.item-pedido-nombre {
+    font-weight: 600;
+    color: #f0ece0;
+    font-size: 0.9rem;
+}
+
+.item-pedido-meta {
+    color: #aaa;
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+.item-pedido-precio {
+    margin-left: auto;
+    color: #c9a84c;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0 0;
+    margin-top: 8px;
+    border-top: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+.total-label {
+    font-weight: 600;
+    color: #f0ece0;
+}
+
+.total-valor {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #c9a84c;
+    font-family: 'Playfair Display', serif;
+}
+
+.recojo-box {
+    background: rgba(201, 168, 76, 0.07);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.recojo-box i {
+    color: #c9a84c;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.recojo-box p {
+    margin: 0;
+    color: #aaa;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.recojo-box strong {
+    color: #f0ece0;
+}

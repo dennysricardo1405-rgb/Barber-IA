@@ -1,0 +1,195 @@
+/* ══════════════════════════════════════════════
+   barberos.css — Estilos del módulo de barberos
+   ══════════════════════════════════════════════ */
+
+/* ── Foto en tabla ───────────────────────────── */
+.foto-barbero-tabla {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--naranja, #e67e22);
+}
+
+.foto-inicial {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--naranja, #e67e22);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Badge día libre ─────────────────────────── */
+.badge-dia {
+    background: rgba(255,255,255,0.08);
+    color: var(--naranja, #e67e22);
+    border: 1px solid var(--naranja, #e67e22);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* ── Modal oscuro ────────────────────────────── */
+.modal-oscuro {
+    background-color: #1e1e1e;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #f0f0f0;
+}
+
+.modal-oscuro .modal-header {
+    background-color: #161616;
+}
+
+.border-naranja {
+    border-bottom: 1px solid var(--naranja, #e67e22) !important;
+}
+
+/* ── Foto en modal ───────────────────────────── */
+.foto-preview-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.foto-preview-modal {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--naranja, #e67e22);
+    transition: opacity 0.2s;
+}
+
+.foto-preview-modal:hover {
+    opacity: 0.8;
+}
+
+.foto-placeholder-modal {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    border: 3px dashed var(--naranja, #e67e22);
+    color: var(--naranja, #e67e22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.foto-placeholder-modal:hover {
+    background: #333;
+}
+
+/* ── Inputs oscuros ──────────────────────────── */
+.form-control-dark,
+.form-select-dark {
+    background-color: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #f0f0f0;
+    border-radius: 8px;
+}
+
+.form-control-dark::placeholder {
+    color: #666;
+}
+
+.form-control-dark:focus,
+.form-select-dark:focus {
+    background-color: #2a2a2a;
+    border-color: var(--naranja, #e67e22);
+    color: #f0f0f0;
+    box-shadow: 0 0 0 3px rgba(230,126,34,0.15);
+}
+
+.form-select-dark option {
+    background-color: #2a2a2a;
+}
+
+.form-label-dark {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+/* ── Botón naranja ───────────────────────────── */
+.btn-naranja {
+    background: var(--naranja, #e67e22);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: opacity 0.2s;
+}
+
+.btn-naranja:hover {
+    opacity: 0.88;
+    color: #fff;
+}
+
+.btn-outline-naranja {
+    color: var(--naranja, #e67e22);
+    border-color: var(--naranja, #e67e22);
+    background: transparent;
+    border-radius: 6px;
+}
+
+.btn-outline-naranja:hover {
+    background: var(--naranja, #e67e22);
+    color: #fff;
+}
+
+/* ── Tabla oscura ────────────────────────────── */
+.table {
+    color: var(--text-primary) !important;
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary); /* Fuerza el color claro en toda la tabla */
+    --bs-table-hover-color: var(--text-primary); /* Mantiene el color claro al pasar el mouse */
+}
+
+.table thead th {
+    background-color: #1e1e1e !important;
+    color: var(--text-muted) !important; /* Agregamos !important para asegurar que sobreescriba Bootstrap */
+    border-color: var(--border) !important;
+    font-size: 0.75rem;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+}
+
+.table tbody tr {
+    border-color: var(--border) !important;
+    transition: background-color 0.15s;
+}
+
+.table tbody tr:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.table tbody td { 
+    border-color: var(--border) !important; 
+    color: var(--text-primary) !important; /* Esta es la línea mágica que hace aparecer el texto */
+    vertical-align: middle;
+}
+
+.table-light { 
+    background-color: #1e1e1e !important; 
+    color: var(--text-muted) !important;
+    --bs-table-color: var(--text-muted);
+}
+
+.card-oscuro {
+    background: #1e1e1e;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+    overflow: hidden;
+}
