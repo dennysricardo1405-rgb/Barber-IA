@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Monitoreo IoT | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/monitoreo.css}">
+</head>
+
+<body class="bg-light">
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='monitoreo')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold m-0 text-primary">Monitoreo IoT de Sillas</h2>
+                    <p class="text-muted m-0 small">Sensores de presencia por silla y ambiente del local, en tiempo
+                        real.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-dark border px-3 py-2" id="badgeBroker">MQTT: ...</span>
+                    <span class="badge bg-dark border px-3 py-2" id="badgeStream">
+                        <i class="fa-solid fa-circle me-1"></i>Conectando...
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Sillas ocupadas</small>
+                        <div class="kpi-valor" id="kpiOcupadas">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Ocupación hoy</small>
+                        <div class="kpi-valor" id="kpiOcupacion">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Servicios detectados</small>
+                        <div class="kpi-valor" id="kpiServicios">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Duración promedio</small>
+                        <div class="kpi-valor" id="kpiDuracion">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Temperatura</small>
+                        <div class="kpi-valor" id="kpiTemp">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Humedad</small>
+                        <div class="kpi-valor" id="kpiHum">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alertas -->
+            <div id="alertas" class="mb-4"></div>
+
+            <div class="row g-4">
+                <div class="col-xl-7">
+                    <h5 class="fw-bold mb-3">Sillas</h5>
+                    <div class="row g-3" id="sillas">
+                        <div class="col-12 text-muted small">Esperando datos de los sensores...</div>
+                    </div>
+                </div>
+                <div class="col-xl-5">
+                    <h5 class="fw-bold mb-3">Ambiente del local</h5>
+                    <div class="panel-grafico">
+                        <canvas id="graficoAmbiente" height="220"></canvas>
+                    </div>
+                    <h5 class="fw-bold mt-4 mb-3">Ocupación de hoy por silla</h5>
+                    <div class="panel-grafico">
+                        <canvas id="graficoOcupacion" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted small mt-3 mb-0" id="actualizado"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/monitoreo.js}"></script>
+</body>
+
+</html>

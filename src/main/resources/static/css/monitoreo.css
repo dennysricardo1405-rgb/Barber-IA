@@ -1,0 +1,61 @@
+/* U3 - Dashboard IoT */
+.kpi {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #aaa;
+}
+
+.kpi-valor {
+    color: #c9a84c;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.silla-iot {
+    background: #141414;
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid #2a2a2a;
+    color: #ddd;
+    height: 100%;
+}
+
+.silla-iot.ocupada {
+    border-color: #e74c3c;
+}
+
+.silla-iot.libre {
+    border-color: #2ecc71;
+}
+
+.silla-iot.offline {
+    border-color: #555;
+    opacity: 0.7;
+}
+
+.silla-iot.con-alerta {
+    box-shadow: 0 0 0 3px rgba(241, 196, 15, 0.5);
+}
+
+.silla-iot .estado {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.panel-grafico {
+    background: #141414;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.alerta-iot {
+    background: rgba(241, 196, 15, 0.1);
+    border: 1px solid rgba(241, 196, 15, 0.4);
+    color: #f1c40f;
+    border-radius: 10px;
+    padding: 8px 14px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}

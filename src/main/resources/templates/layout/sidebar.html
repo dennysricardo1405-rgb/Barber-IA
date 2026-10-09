@@ -77,6 +77,10 @@
                     th:classappend="${activePage == 'reportes' ? ' active' : ''}">
                     <i class="fa-solid fa-chart-line"></i> Reportes
                 </a>
+                <a href="/monitoreo" class="nav-link"
+                    th:classappend="${activePage == 'monitoreo' ? ' active' : ''}">
+                    <i class="fa-solid fa-tower-broadcast"></i> Monitoreo IoT
+                </a>
                 <a href="/admin/slider" class="nav-link" th:classappend="${activePage == 'slider' ? ' active' : ''}">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Gestión del Sitio
                 </a>
@@ -106,6 +110,10 @@
                 <a href="/secretario/recepcion" class="nav-link"
                     th:classappend="${activePage == 'recepcion' ? ' active' : ''}">
                     <i class="fa-solid fa-chair"></i> Recepción Sillas
+                </a>
+                <a href="/monitoreo" class="nav-link"
+                    th:classappend="${activePage == 'monitoreo' ? ' active' : ''}">
+                    <i class="fa-solid fa-tower-broadcast"></i> Monitoreo IoT
                 </a>
                 <a href="/secretario/pedidos" class="nav-link"
                     th:classappend="${activePage == 'recepcion_pedidos' ? ' active' : ''}">

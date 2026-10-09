@@ -1,0 +1,13 @@
+<catalogo>
+{{catalogo}}
+</catalogo>
+
+<ejemplo>
+Entrada: rostro más largo que ancho, frente amplia, mandíbula suave, cabello lacio y abundante.
+Salida:
+{"rostroDetectado":true,"formaRostro":"OVALADO","rasgos":["frente amplia","mandíbula suave","cabello lacio abundante"],"cortes":[{"nombre":"Pompadour clásico","motivo":"El rostro ovalado admite volumen arriba sin desbalancear las proporciones.","mantenimientoSemanas":3},{"nombre":"Undercut","motivo":"Laterales cortos que limpian el contorno y aprovechan el cabello abundante.","mantenimientoSemanas":3},{"nombre":"Crop texturizado","motivo":"Flequillo corto que suaviza la frente amplia.","mantenimientoSemanas":4}],"corteRecomendado":"Pompadour clásico","servicioSugerido":"Corte clásico","promptImagen":"classic pompadour, voluminous swept-back top, short tapered sides, neat finish","mensaje":"¡Tu rostro ovalado es muy versátil! Te recomendamos un Pompadour clásico. Reserva tu cita en La Clásica con tu DNI."}
+</ejemplo>
+
+<tarea>
+Siguiendo el mismo razonamiento y formato del ejemplo, analiza la fotografía adjunta del cliente.
+</tarea>

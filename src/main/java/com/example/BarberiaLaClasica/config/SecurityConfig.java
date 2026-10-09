@@ -29,7 +29,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/secretario/recepcion/api-consumos/**",
-                                "/api/clientes/**"))
+                                "/api/clientes/**",
+                                // U2 asesor IA (también lo consume la app Streamlit) y U3 nodos IoT por HTTP
+                                "/api/ia/asesor/**",
+                                "/api/iot/**"))
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
                         // 1. ✅ Rutas públicas y recursos estáticos
@@ -40,6 +43,17 @@ public class SecurityConfig {
                                 "/api/clientes/consulta-dni/**", "/api/citas/pre-reserva", "/acceso-denegado",
                                 "/css/**", "/js/**", "/images/**", "/uploads/**")
                         .permitAll()
+
+                        // U1: health check para el despliegue simulado del pipeline
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+
+                        // U2: asesor de imagen por IA (público para no exigir login al cliente)
+                        .requestMatchers("/asesor-ia", "/api/ia/asesor", "/api/ia/asesor/**").permitAll()
+                        .requestMatchers("/api/ia/cliente/**").hasAnyRole("ADMINISTRADOR", "SECRETARIO")
+
+                        // U3: los nodos IoT envían por HTTP con su token; el dashboard es interno
+                        .requestMatchers("/api/iot/**").permitAll()
+                        .requestMatchers("/monitoreo", "/monitoreo/**").hasAnyRole("ADMINISTRADOR", "SECRETARIO")
 
                         // 2. ✅ APIs internas compartidas
                         .requestMatchers("/api/clientes/**").hasAnyRole("ADMINISTRADOR", "SECRETARIO")

@@ -16,18 +16,32 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  # U3 - Capa de transmisión: broker MQTT al que publican los sensores de las sillas
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: barberia-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./iot/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
 
   app:
+    # En CI/CD se usa la imagen publicada en Docker Hub (APP_IMAGE); en local se construye
+    image: ${APP_IMAGE:-barber-ia-app:local}
     build:
       context: .
       dockerfile: Dockerfile
-    # En producción, reemplaza "build" por "image: <tu_usuario_dockerhub>/barber-ia:latest"
     container_name: barberia-app
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
+      mosquitto:
+        condition: service_started
     environment:
       DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       DB_USER: ${MYSQL_USER}
@@ -37,11 +51,52 @@ services:
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
       API_DNI_TOKEN: ${API_DNI_TOKEN}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      TZ: America/Lima
+      # U2 - IA
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_IMAGE_MODEL: ${GEMINI_IMAGE_MODEL:-gemini-2.5-flash-image}
+      # U3 - IoT
+      MQTT_BROKER_URL: ${MQTT_BROKER_URL:-tcp://mosquitto:1883}
+      MQTT_TOPIC_PREFIX: ${MQTT_TOPIC_PREFIX:-laclasica}
+      IOT_HTTP_TOKEN: ${IOT_HTTP_TOKEN:-}
     ports:
       - "8080:8080"
     volumes:
       - uploads_data:/app/uploads
 
+  # U3 - Capa de percepción simulada: un sensor de presencia por silla + sensor de ambiente
+  iot-simulador:
+    build:
+      context: ./iot/simulador
+    container_name: barberia-iot-simulador
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_TOPIC_PREFIX: ${MQTT_TOPIC_PREFIX:-laclasica}
+      SILLAS: ${IOT_SILLAS:-1,2,3,4}
+      ESCALA_TIEMPO: ${IOT_ESCALA_TIEMPO:-10}
+    profiles: ["iot"]
+
+  # U2 - Laboratorio de prompts (Streamlit)
+  streamlit:
+    build:
+      context: .
+      dockerfile: ia/streamlit/Dockerfile
+    container_name: barberia-streamlit
+    depends_on:
+      - app
+    environment:
+      BARBERIA_API_URL: http://app:8080
+    ports:
+      - "8501:8501"
+    profiles: ["ia"]
+
 volumes:
   mysql_data:
+  mosquitto_data:
   uploads_data:

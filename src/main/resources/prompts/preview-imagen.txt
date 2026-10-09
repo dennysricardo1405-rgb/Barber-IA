@@ -1,0 +1,6 @@
+Edit this photo of a real customer of a barbershop.
+Keep EXACTLY the same person: same face, identity, skin tone, facial hair, expression, clothes,
+pose, camera angle, lighting and background.
+Change ONLY the haircut to: {{corte}} ({{descripcion}}).
+The result must look like a realistic photo taken right after a professional barbershop service.
+Do not add text, logos or watermarks.

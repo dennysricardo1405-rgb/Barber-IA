@@ -1,0 +1,7 @@
+<catalogo>
+{{catalogo}}
+</catalogo>
+
+<tarea>
+Analiza la fotografía adjunta del cliente y devuelve la recomendación en el formato JSON indicado.
+</tarea>
