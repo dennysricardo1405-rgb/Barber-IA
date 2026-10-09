@@ -1,0 +1,80 @@
+:root {
+    --gold: #c9a24b;
+    --fondo: #0f0f0f;
+    --tarjeta: #1a1a1a;
+}
+
+body {
+    background: var(--fondo);
+    color: #eee;
+    font-family: system-ui, sans-serif;
+}
+
+.asesor-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.asesor-logo {
+    color: var(--gold);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 1.2rem;
+}
+
+.asesor-titulo {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.text-gold {
+    color: var(--gold);
+}
+
+.btn-gold {
+    background: var(--gold);
+    color: #111;
+    font-weight: 600;
+    border: none;
+}
+
+.btn-gold:hover {
+    background: #b38d3b;
+    color: #111;
+}
+
+.asesor-card {
+    background: var(--tarjeta);
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.zona-foto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 260px;
+    border: 2px dashed #444;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #aaa;
+    overflow: hidden;
+    width: 100%;
+}
+
+.zona-foto img {
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+}
+
+.img-preview {
+    width: 100%;
+    border-radius: 12px;
+    border: 2px solid var(--gold);
+}

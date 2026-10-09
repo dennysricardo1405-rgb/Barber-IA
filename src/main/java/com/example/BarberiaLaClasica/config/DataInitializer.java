@@ -34,6 +34,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
+    @org.springframework.beans.factory.annotation.Value("${app.admin.password:admin123}")
+    private String adminPassword;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
@@ -71,7 +74,7 @@ public class DataInitializer implements CommandLineRunner {
             Usuario admin = new Usuario();
             admin.setNombre("Administrador");
             admin.setEmail("admin@gmail.com");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setEstado(1);
             admin.setPerfil(adminPerfil);
             usuarioRepository.save(admin);

@@ -9,10 +9,10 @@
     <relativePath/>
 </parent>
 	<groupId>com.example</groupId>
-	<artifactId>OpticaPrecisa</artifactId>
+	<artifactId>barberia-la-clasica</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>Barberia La Clasica</name>
+	<description>Sistema inteligente y automatizado para la Barberia La Clasica</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -91,14 +91,46 @@
         <version>3.0.0</version>
     </dependency>
 	<dependency>
-		<groupId>net.sourceforge.tess4j</groupId>
-		<artifactId>tess4j</artifactId>
-		<version>5.11.0</version>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+	<!-- U3 IoT: cliente MQTT para recibir los datos de los sensores de las sillas -->
+	<dependency>
+		<groupId>org.eclipse.paho</groupId>
+		<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+		<version>1.2.5</version>
+	</dependency>
+	<!-- Base de datos en memoria solo para las pruebas automatizadas del pipeline -->
+	<dependency>
+		<groupId>com.h2database</groupId>
+		<artifactId>h2</artifactId>
+		<scope>test</scope>
 	</dependency>
 	</dependencies>
 
 	<build>
+		<finalName>barberia-la-clasica</finalName>
 		<plugins>
+			<!-- U1: reporte de cobertura de pruebas (target/site/jacoco) -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.12</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

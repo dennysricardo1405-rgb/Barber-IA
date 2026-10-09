@@ -1,0 +1,30 @@
+<catalogo>
+{{catalogo}}
+</catalogo>
+
+<ejemplos>
+<ejemplo id="1">
+Entrada: rostro más largo que ancho, frente amplia, mandíbula suave, cabello lacio y abundante.
+Salida:
+{"rostroDetectado":true,"formaRostro":"OVALADO","rasgos":["frente amplia","mandíbula suave","cabello lacio abundante"],"cortes":[{"nombre":"Pompadour clásico","motivo":"El rostro ovalado admite volumen arriba sin desbalancear las proporciones.","mantenimientoSemanas":3},{"nombre":"Undercut","motivo":"Laterales cortos que limpian el contorno y aprovechan el cabello abundante.","mantenimientoSemanas":3},{"nombre":"Crop texturizado","motivo":"Flequillo corto que suaviza la frente amplia.","mantenimientoSemanas":4}],"corteRecomendado":"Pompadour clásico","servicioSugerido":"Corte clásico","promptImagen":"classic pompadour, voluminous swept-back top, short tapered sides, neat finish","mensaje":"¡Tu rostro ovalado es muy versátil! Te recomendamos un Pompadour clásico. Reserva tu cita en La Clásica con tu DNI."}
+</ejemplo>
+<ejemplo id="2">
+Entrada: largo y ancho casi iguales, mejillas llenas, mandíbula redondeada, cabello ondulado de densidad media.
+Salida:
+{"rostroDetectado":true,"formaRostro":"REDONDO","rasgos":["mejillas llenas","mandíbula redondeada","cabello ondulado"],"cortes":[{"nombre":"Fade alto con volumen arriba","motivo":"Los laterales muy cortos y la altura arriba alargan visualmente el rostro.","mantenimientoSemanas":2},{"nombre":"Quiff","motivo":"El volumen frontal elevado crea líneas verticales.","mantenimientoSemanas":3},{"nombre":"Side part con degradado","motivo":"La raya lateral rompe la simetría circular.","mantenimientoSemanas":3}],"corteRecomendado":"Fade alto con volumen arriba","servicioSugerido":"Corte + degradado","promptImagen":"high skin fade, textured voluminous top about 6 cm, wavy hair styled upward","mensaje":"Para tu rostro redondo, un Fade alto con volumen arriba estiliza tus facciones. ¡Te esperamos en La Clásica!"}
+</ejemplo>
+<ejemplo id="3">
+Entrada: frente ancha, mandíbula marcada y angular, ancho similar en frente y mandíbula, cabello grueso y corto.
+Salida:
+{"rostroDetectado":true,"formaRostro":"CUADRADO","rasgos":["mandíbula angular","frente ancha","cabello grueso"],"cortes":[{"nombre":"Buzz cut","motivo":"Resalta la mandíbula marcada con un estilo limpio y de bajo mantenimiento.","mantenimientoSemanas":2},{"nombre":"Crew cut","motivo":"Un poco más de largo arriba suaviza los ángulos sin perder masculinidad.","mantenimientoSemanas":3},{"nombre":"Textured fringe","motivo":"El flequillo texturizado equilibra la frente ancha.","mantenimientoSemanas":4}],"corteRecomendado":"Crew cut","servicioSugerido":"Corte clásico","promptImagen":"classic crew cut, short tapered sides, slightly longer textured top brushed forward","mensaje":"Tu mandíbula marcada es tu mejor rasgo. Un Crew cut la resalta y es fácil de mantener. ¡Reserva en La Clásica!"}
+</ejemplo>
+<ejemplo id="4">
+Entrada: foto de un paisaje sin personas.
+Salida:
+{"rostroDetectado":false,"formaRostro":null,"rasgos":[],"cortes":[],"corteRecomendado":null,"servicioSugerido":null,"promptImagen":null,"mensaje":"No logramos ver tu rostro. Envíanos una selfie de frente, con buena luz y sin gorra ni lentes oscuros."}
+</ejemplo>
+</ejemplos>
+
+<tarea>
+Siguiendo el mismo razonamiento y formato de los ejemplos, analiza la fotografía adjunta del cliente.
+</tarea>

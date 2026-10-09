@@ -1,0 +1,147 @@
+package com.example.BarberiaLaClasica.service;
+
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+/**
+ * U2 - Cliente HTTP de la API de Google Gemini (Google AI Studio).
+ * Usa la API REST generateContent directamente desde Spring Boot.
+ */
+@Component
+public class GeminiClient {
+
+    public record Imagen(byte[] datos, String mimeType) {
+    }
+
+    private final RestClient restClient;
+    private final String apiKey;
+    private final String modeloTexto;
+    private final String modeloImagen;
+
+    public GeminiClient(RestClient.Builder builder,
+            @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl,
+            @Value("${gemini.api-key:}") String apiKey,
+            @Value("${gemini.model:gemini-2.5-flash}") String modeloTexto,
+            @Value("${gemini.image-model:gemini-2.5-flash-image}") String modeloImagen) {
+        this.restClient = builder.baseUrl(baseUrl).build();
+        this.apiKey = apiKey == null ? "" : apiKey.trim();
+        this.modeloTexto = modeloTexto;
+        this.modeloImagen = modeloImagen;
+    }
+
+    /** Sin API key el sistema trabaja en modo demostración. */
+    public boolean configurado() {
+        return !apiKey.isEmpty();
+    }
+
+    public String modeloTexto() {
+        return modeloTexto;
+    }
+
+    /**
+     * Envía la instrucción de sistema, el prompt y la foto, y pide la respuesta en JSON.
+     *
+     * @return el texto JSON devuelto por el modelo
+     */
+    public String analizarImagenJson(String sistema, String prompt, Imagen foto, double temperatura) {
+        Map<String, Object> cuerpo = Map.of(
+                "systemInstruction", Map.of("parts", List.of(Map.of("text", sistema))),
+                "contents", List.of(Map.of("role", "user", "parts", List.of(
+                        Map.of("text", prompt),
+                        parteImagen(foto)))),
+                "generationConfig", Map.of(
+                        "temperature", temperatura,
+                        "responseMimeType", "application/json"));
+
+        JsonNode respuesta = llamar(modeloTexto, cuerpo);
+        StringBuilder texto = new StringBuilder();
+        for (JsonNode parte : partes(respuesta)) {
+            if (parte.hasNonNull("text")) {
+                texto.append(parte.get("text").asText());
+            }
+        }
+        if (texto.isEmpty()) {
+            throw new GeminiException("Gemini no devolvió texto: " + resumen(respuesta));
+        }
+        return texto.toString();
+    }
+
+    /** Pide al modelo de imágenes que edite la foto con el corte indicado. */
+    public Imagen editarImagen(String prompt, Imagen foto) {
+        Map<String, Object> cuerpo = Map.of(
+                "contents", List.of(Map.of("role", "user", "parts", List.of(
+                        Map.of("text", prompt),
+                        parteImagen(foto)))),
+                "generationConfig", Map.of("responseModalities", List.of("TEXT", "IMAGE")));
+
+        JsonNode respuesta = llamar(modeloImagen, cuerpo);
+        for (JsonNode parte : partes(respuesta)) {
+            JsonNode inline = parte.has("inlineData") ? parte.get("inlineData") : parte.get("inline_data");
+            if (inline != null && inline.hasNonNull("data")) {
+                String mime = inline.has("mimeType") ? inline.get("mimeType").asText() : "image/png";
+                return new Imagen(Base64.getDecoder().decode(inline.get("data").asText()), mime);
+            }
+        }
+        throw new GeminiException("Gemini no devolvió una imagen: " + resumen(respuesta));
+    }
+
+    private JsonNode llamar(String modelo, Map<String, Object> cuerpo) {
+        if (!configurado()) {
+            throw new GeminiException("GEMINI_API_KEY no está configurada");
+        }
+        try {
+            return restClient.post()
+                    .uri("/models/{modelo}:generateContent", modelo)
+                    .header("x-goog-api-key", apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(cuerpo)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (RuntimeException e) {
+            throw new GeminiException("Error llamando a Gemini (" + modelo + "): " + e.getMessage(), e);
+        }
+    }
+
+    private static Map<String, Object> parteImagen(Imagen foto) {
+        return Map.of("inlineData", Map.of(
+                "mimeType", foto.mimeType(),
+                "data", Base64.getEncoder().encodeToString(foto.datos())));
+    }
+
+    private static List<JsonNode> partes(JsonNode respuesta) {
+        List<JsonNode> lista = new ArrayList<>();
+        if (respuesta == null) {
+            return lista;
+        }
+        JsonNode parts = respuesta.path("candidates").path(0).path("content").path("parts");
+        parts.forEach(lista::add);
+        return lista;
+    }
+
+    private static String resumen(JsonNode respuesta) {
+        if (respuesta == null) {
+            return "respuesta vacía";
+        }
+        String s = respuesta.toString();
+        return s.length() > 300 ? s.substring(0, 300) + "..." : s;
+    }
+
+    public static class GeminiException extends RuntimeException {
+        public GeminiException(String mensaje) {
+            super(mensaje);
+        }
+
+        public GeminiException(String mensaje, Throwable causa) {
+            super(mensaje, causa);
+        }
+    }
+}

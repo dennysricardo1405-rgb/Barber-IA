@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "author": "Barbería La Clásica",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-hc-sr04", "id": "silla1", "top": -150, "left": -180, "attrs": { "distance": "45" } },
+    { "type": "wokwi-hc-sr04", "id": "silla2", "top": -150, "left": 120, "attrs": { "distance": "180" } },
+    { "type": "wokwi-dht22", "id": "dht", "top": -110, "left": 330, "attrs": { "temperature": "24.5", "humidity": "60" } },
+    { "type": "wokwi-led", "id": "led1", "top": 150, "left": -150, "attrs": { "color": "red", "label": "Silla 1" } },
+    { "type": "wokwi-led", "id": "led2", "top": 150, "left": -90, "attrs": { "color": "red", "label": "Silla 2" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 230, "left": -160, "rotate": 90, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": 230, "left": -100, "rotate": 90, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "silla1:VCC", "esp:5V", "red", [] ],
+    [ "silla1:GND", "esp:GND.1", "black", [] ],
+    [ "silla1:TRIG", "esp:5", "green", [] ],
+    [ "silla1:ECHO", "esp:18", "blue", [] ],
+    [ "silla2:VCC", "esp:5V", "red", [] ],
+    [ "silla2:GND", "esp:GND.1", "black", [] ],
+    [ "silla2:TRIG", "esp:17", "green", [] ],
+    [ "silla2:ECHO", "esp:16", "blue", [] ],
+    [ "dht:VCC", "esp:3V3", "red", [] ],
+    [ "dht:GND", "esp:GND.2", "black", [] ],
+    [ "dht:SDA", "esp:15", "orange", [] ],
+    [ "led1:A", "esp:2", "orange", [] ],
+    [ "led1:C", "r1:1", "black", [] ],
+    [ "r1:2", "esp:GND.1", "black", [] ],
+    [ "led2:A", "esp:4", "orange", [] ],
+    [ "led2:C", "r2:1", "black", [] ],
+    [ "r2:2", "esp:GND.1", "black", [] ]
+  ],
+  "dependencies": {}
+}

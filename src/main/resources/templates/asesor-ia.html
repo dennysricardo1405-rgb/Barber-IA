@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesor de Imagen IA | La Clásica</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/asesor-ia.css}">
+</head>
+
+<body>
+    <nav class="asesor-nav">
+        <a href="/" class="asesor-logo"><i class="fa-solid fa-scissors"></i> La Clásica</a>
+        <a href="/reservar" class="btn btn-gold btn-sm"><i class="fa-solid fa-calendar-check me-1"></i>Reservar</a>
+    </nav>
+
+    <main class="container py-4">
+        <header class="text-center mb-4">
+            <h1 class="asesor-titulo">Asesor de Imagen con IA</h1>
+            <p class="text-secondary mb-0">Sube una selfie de frente y te recomendamos el corte que mejor va con tu
+                rostro.</p>
+            <span th:if="${modoDemo}" class="badge bg-warning text-dark mt-2">
+                Modo demostración: falta configurar GEMINI_API_KEY
+            </span>
+        </header>
+
+        <div class="row g-4">
+            <!-- Formulario -->
+            <div class="col-lg-5">
+                <div class="asesor-card">
+                    <form id="formAsesor">
+                        <label for="foto" class="zona-foto" id="zonaFoto">
+                            <img id="vistaFoto" alt="" class="d-none">
+                            <span id="textoFoto"><i class="fa-solid fa-camera fa-2x mb-2"></i><br>Toca para subir tu
+                                foto<br><small>JPG, PNG o WEBP, máximo 5 MB</small></span>
+                        </label>
+                        <input type="file" id="foto" name="foto" accept="image/jpeg,image/png,image/webp"
+                            class="d-none" required>
+
+                        <label class="form-label mt-3 small text-secondary" for="estrategia">Estrategia de
+                            prompt</label>
+                        <select id="estrategia" name="estrategia" class="form-select bg-dark text-light">
+                            <option value="FEW_SHOT" selected>Few-shot (4 ejemplos)</option>
+                            <option value="ONE_SHOT">One-shot (1 ejemplo)</option>
+                            <option value="ZERO_SHOT">Zero-shot (sin ejemplos)</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-gold w-100 mt-3" id="btnAnalizar">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Analizar mi rostro
+                        </button>
+                    </form>
+                    <div id="error" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+            </div>
+
+            <!-- Resultado -->
+            <div class="col-lg-7">
+                <div class="asesor-card h-100" id="panelResultado">
+                    <div id="estadoVacio" class="text-center text-secondary py-5">
+                        <i class="fa-regular fa-face-smile fa-3x mb-3"></i>
+                        <p class="mb-0">Aquí verás tu recomendación y la vista previa de tu nuevo corte.</p>
+                    </div>
+                    <div id="cargando" class="text-center py-5 d-none">
+                        <div class="spinner-border text-warning mb-3"></div>
+                        <p class="text-secondary mb-0">Analizando tu rostro y generando la vista previa...</p>
+                    </div>
+                    <div id="resultado" class="d-none">
+                        <div class="row g-3 align-items-start">
+                            <div class="col-sm-5 text-center">
+                                <img id="imgPreview" class="img-preview" alt="Vista previa del corte">
+                                <small class="text-secondary d-block mt-1" id="leyendaPreview"></small>
+                            </div>
+                            <div class="col-sm-7">
+                                <span class="badge bg-secondary mb-2" id="badgeForma"></span>
+                                <h3 class="text-gold mb-1" id="corteRecomendado"></h3>
+                                <p class="small" id="mensaje"></p>
+                                <ul class="list-unstyled small" id="listaCortes"></ul>
+                                <p class="small text-secondary mb-0" id="meta"></p>
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary">
+                        <form id="formAprobar" class="row g-2 align-items-end">
+                            <div class="col-sm-7">
+                                <label class="form-label small text-secondary" for="dni">¿Te gusta? Apruébalo con tu
+                                    DNI y tu barbero lo verá al atenderte</label>
+                                <input type="text" id="dni" class="form-control bg-dark text-light" maxlength="8"
+                                    pattern="\d{8}" placeholder="DNI (8 dígitos)" required>
+                            </div>
+                            <div class="col-sm-5">
+                                <button class="btn btn-gold w-100" type="submit"><i
+                                        class="fa-solid fa-check me-1"></i>Aprobar corte</button>
+                            </div>
+                        </form>
+                        <div id="aprobado" class="alert alert-success mt-3 d-none">
+                            Corte aprobado. <a href="/reservar" class="alert-link">Reserva tu cita aquí</a>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:src="@{/js/asesor-ia.js}"></script>
+</body>
+
+</html>
