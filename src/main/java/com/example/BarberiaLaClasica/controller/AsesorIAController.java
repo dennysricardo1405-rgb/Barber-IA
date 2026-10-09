@@ -3,6 +3,8 @@ package com.example.BarberiaLaClasica.controller;
 import java.io.IOException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +23,8 @@ import com.example.BarberiaLaClasica.service.GeminiClient;
 /** U2 - Asesor de imagen por IA. */
 @Controller
 public class AsesorIAController {
+
+    private static final Logger log = LoggerFactory.getLogger(AsesorIAController.class);
 
     private final AsesorImagenService asesorService;
     private final GeminiClient gemini;
@@ -67,7 +71,16 @@ public class AsesorIAController {
     @ExceptionHandler(GeminiClient.GeminiException.class)
     @ResponseBody
     public ResponseEntity<Map<String, String>> errorIA(GeminiClient.GeminiException e) {
-        return ResponseEntity.status(502).body(Map.of("error",
-                "El asesor de IA no está disponible en este momento. Intenta de nuevo."));
+        log.warn("Fallo del asesor IA: {}", e.getMessage());
+        return ResponseEntity.status(502).body(Map.of("error", mensajeParaUsuario(e.getStatus())));
+    }
+
+    static String mensajeParaUsuario(int status) {
+        return switch (status) {
+            case 400, 401, 403 -> "Gemini rechazó la clave: revisa que GEMINI_API_KEY sea correcta y esté activa.";
+            case 404 -> "El modelo de Gemini configurado no existe: revisa GEMINI_MODEL.";
+            case 429 -> "Se alcanzó el límite gratuito de Gemini. Espera un minuto e inténtalo de nuevo.";
+            default -> "El asesor de IA no está disponible en este momento. Intenta de nuevo.";
+        };
     }
 }
