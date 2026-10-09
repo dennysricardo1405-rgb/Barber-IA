@@ -4,10 +4,10 @@
 
 **Asesor de imagen** (propuesta 1 del Avance 01). El cliente sube una selfie en `/asesor-ia`:
 
-1. Spring Boot envía la foto y el prompt a **Google Gemini** (`gemini-2.5-flash`) por HTTP.
+1. Spring Boot envía la foto y el prompt a **Google Gemini** (`gemini-3.8-flash`) por HTTP.
 2. El modelo devuelve un **JSON** con la forma del rostro, 3 cortes sugeridos con su motivo y semanas de
    mantenimiento, el corte recomendado y el servicio del catálogo de la barbería.
-3. Con el corte recomendado, un segundo modelo (`gemini-2.5-flash-image`) **edita la foto** y genera la
+3. Con el corte recomendado, un segundo modelo (`gemini-3.1-flash-lite-image`) **edita la foto** y genera la
    vista previa del cliente con su nuevo corte.
 4. El cliente **aprueba con su DNI**. En recepción, la tarjeta de la silla con reserva muestra
    **"Ver corte IA"** para que el barbero vea la imagen aprobada.
@@ -56,8 +56,8 @@ como dato de entrada del recordatorio predictivo de la U4.
 | Variable | Valor por defecto |
 |---|---|
 | `GEMINI_API_KEY` | vacío: **modo demostración** con una respuesta fija, útil para CI y para probar sin clave |
-| `GEMINI_MODEL` | `gemini-2.5-flash` |
-| `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` |
+| `GEMINI_MODEL` | `gemini-3.8-flash` |
+| `GEMINI_IMAGE_MODEL` | `gemini-3.1-flash-lite-image` |
 | `GEMINI_PREVIEW_ENABLED` | `true` |
 
 La clave se obtiene gratis en https://aistudio.google.com/apikey.
