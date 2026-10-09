@@ -5,6 +5,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -23,20 +26,31 @@ public class GeminiClient {
     public record Imagen(byte[] datos, String mimeType) {
     }
 
+    private static final Logger log = LoggerFactory.getLogger(GeminiClient.class);
+
     private final RestClient restClient;
     private final String apiKey;
     private final String modeloTexto;
     private final String modeloImagen;
+    private final String modeloRespaldo;
 
+    public GeminiClient(RestClient.Builder builder, String baseUrl, String apiKey, String modeloTexto,
+            String modeloImagen) {
+        this(builder, baseUrl, apiKey, modeloTexto, modeloImagen, "");
+    }
+
+    @Autowired
     public GeminiClient(RestClient.Builder builder,
             @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl,
             @Value("${gemini.api-key:}") String apiKey,
             @Value("${gemini.model:gemini-3.8-flash}") String modeloTexto,
-            @Value("${gemini.image-model:gemini-3.1-flash-lite-image}") String modeloImagen) {
+            @Value("${gemini.image-model:gemini-3.1-flash-lite-image}") String modeloImagen,
+            @Value("${gemini.fallback-model:gemini-3.5-flash-lite}") String modeloRespaldo) {
         this.restClient = builder.baseUrl(baseUrl).build();
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.modeloTexto = modeloTexto;
         this.modeloImagen = modeloImagen;
+        this.modeloRespaldo = modeloRespaldo == null ? "" : modeloRespaldo.trim();
     }
 
     /** Sin API key el sistema trabaja en modo demostración. */
@@ -63,7 +77,17 @@ public class GeminiClient {
                         "temperature", temperatura,
                         "responseMimeType", "application/json"));
 
-        JsonNode respuesta = llamar(modeloTexto, cuerpo);
+        JsonNode respuesta;
+        try {
+            respuesta = llamar(modeloTexto, cuerpo);
+        } catch (GeminiException e) {
+            // 503 = modelo saturado: se intenta una vez con el modelo de respaldo
+            if (e.getStatus() != 503 || modeloRespaldo.isEmpty() || modeloRespaldo.equals(modeloTexto)) {
+                throw e;
+            }
+            log.warn("{} saturado, se usa {}", modeloTexto, modeloRespaldo);
+            respuesta = llamar(modeloRespaldo, cuerpo);
+        }
         StringBuilder texto = new StringBuilder();
         for (JsonNode parte : partes(respuesta)) {
             if (parte.hasNonNull("text")) {

@@ -79,6 +79,7 @@ public class AsesorIAController {
         return switch (status) {
             case 400, 401, 403 -> "Gemini rechazó la clave: revisa que GEMINI_API_KEY sea correcta y esté activa.";
             case 404 -> "El modelo de Gemini configurado no existe: revisa GEMINI_MODEL.";
+            case 503 -> "Gemini está saturado en este momento. Espera unos segundos e inténtalo de nuevo.";
             case 429 -> "Se alcanzó el límite gratuito de Gemini. Espera un minuto e inténtalo de nuevo.";
             default -> "El asesor de IA no está disponible en este momento. Intenta de nuevo.";
         };

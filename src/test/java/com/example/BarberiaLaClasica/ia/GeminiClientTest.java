@@ -84,4 +84,21 @@ class GeminiClientTest {
                     assertThat(e.getMessage()).contains("Quota exceeded");
                 });
     }
+
+    @Test
+    void siElModeloEstaSaturadoUsaElDeRespaldo() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        GeminiClient cliente = new GeminiClient(builder, BASE, "clave", "modelo-texto", "modelo-imagen",
+                "modelo-respaldo");
+        server.expect(requestTo(BASE + "/models/modelo-texto:generateContent"))
+                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        server.expect(requestTo(BASE + "/models/modelo-respaldo:generateContent"))
+                .andRespond(withSuccess("""
+                        {"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThat(cliente.analizarImagenJson("s", "p", foto, 0.4)).isEqualTo("{}");
+        server.verify();
+    }
 }
