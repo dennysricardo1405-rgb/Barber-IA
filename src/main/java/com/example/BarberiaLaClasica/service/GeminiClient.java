@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -106,9 +107,30 @@ public class GeminiClient {
                     .body(cuerpo)
                     .retrieve()
                     .body(JsonNode.class);
+        } catch (RestClientResponseException e) {
+            int status = e.getStatusCode().value();
+            throw new GeminiException("Gemini respondió " + status + " (" + modelo + "): "
+                    + mensajeDeGoogle(e.getResponseBodyAsString()), status, e);
         } catch (RuntimeException e) {
             throw new GeminiException("Error llamando a Gemini (" + modelo + "): " + e.getMessage(), e);
         }
+    }
+
+    /** Google devuelve {"error": {"message": "..."}}; si no, se usa el cuerpo recortado. */
+    private static String mensajeDeGoogle(String cuerpo) {
+        if (cuerpo == null || cuerpo.isBlank()) {
+            return "sin detalle";
+        }
+        try {
+            String mensaje = new com.fasterxml.jackson.databind.ObjectMapper().readTree(cuerpo)
+                    .path("error").path("message").asText("");
+            if (!mensaje.isBlank()) {
+                return mensaje;
+            }
+        } catch (com.fasterxml.jackson.core.JsonProcessingException ignorada) {
+            // no era JSON
+        }
+        return cuerpo.length() > 300 ? cuerpo.substring(0, 300) + "..." : cuerpo;
     }
 
     private static Map<String, Object> parteImagen(Imagen foto) {
@@ -136,12 +158,24 @@ public class GeminiClient {
     }
 
     public static class GeminiException extends RuntimeException {
+        /** Código HTTP devuelto por Google, o 0 si el fallo no vino de una respuesta HTTP. */
+        private final int status;
+
         public GeminiException(String mensaje) {
-            super(mensaje);
+            this(mensaje, 0, null);
         }
 
         public GeminiException(String mensaje, Throwable causa) {
+            this(mensaje, 0, causa);
+        }
+
+        public GeminiException(String mensaje, int status, Throwable causa) {
             super(mensaje, causa);
+            this.status = status;
+        }
+
+        public int getStatus() {
+            return status;
         }
     }
 }
