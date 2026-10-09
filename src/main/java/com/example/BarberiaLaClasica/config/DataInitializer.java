@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import com.example.BarberiaLaClasica.repository.PermisoRepository;
 import com.example.BarberiaLaClasica.repository.UsuarioRepository;
 
 @Component
+@Order(1)
 public class DataInitializer implements CommandLineRunner {
 
     @Autowired

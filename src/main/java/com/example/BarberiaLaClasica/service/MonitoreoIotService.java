@@ -130,10 +130,12 @@ public class MonitoreoIotService {
                 .findByTipoAndFechaGreaterThanEqualOrderByFechaAsc(LecturaIot.SILLA, inicioDia).stream()
                 .collect(Collectors.groupingBy(LecturaIot::getSillaId, LinkedHashMap::new, Collectors.toList()));
 
-        // Sillas = barberos activos + cualquier sensor que reporte un id desconocido
+        // Sillas = barberos habilitados (libres o atendiendo) + cualquier sensor con id desconocido
         Map<Long, String> sillas = new LinkedHashMap<>();
-        for (Barbero b : barberoRepository.findByEstado(1)) {
-            sillas.put(b.getId(), b.getNombre());
+        for (Barbero b : barberoRepository.findAll()) {
+            if (b.getEstado() != 0) {
+                sillas.put(b.getId(), b.getNombre());
+            }
         }
         porSilla.keySet().forEach(id -> sillas.putIfAbsent(id, null));
 
