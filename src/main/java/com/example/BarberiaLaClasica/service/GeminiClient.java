@@ -31,8 +31,8 @@ public class GeminiClient {
     public GeminiClient(RestClient.Builder builder,
             @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl,
             @Value("${gemini.api-key:}") String apiKey,
-            @Value("${gemini.model:gemini-2.5-flash}") String modeloTexto,
-            @Value("${gemini.image-model:gemini-2.5-flash-image}") String modeloImagen) {
+            @Value("${gemini.model:gemini-3.8-flash}") String modeloTexto,
+            @Value("${gemini.image-model:gemini-3.1-flash-lite-image}") String modeloImagen) {
         this.restClient = builder.baseUrl(baseUrl).build();
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.modeloTexto = modeloTexto;
