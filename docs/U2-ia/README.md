@@ -58,6 +58,7 @@ como dato de entrada del recordatorio predictivo de la U4.
 | `GEMINI_API_KEY` | vacío: **modo demostración** con una respuesta fija, útil para CI y para probar sin clave |
 | `GEMINI_MODEL` | `gemini-3.8-flash` |
 | `GEMINI_IMAGE_MODEL` | `gemini-3.1-flash-lite-image` |
+| `GEMINI_FALLBACK_MODEL` | `gemini-3.5-flash-lite` (se usa si el principal está saturado) |
 | `GEMINI_PREVIEW_ENABLED` | `true` |
 
 La clave se obtiene gratis en https://aistudio.google.com/apikey.
