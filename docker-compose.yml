@@ -52,6 +52,7 @@ services:
       MAIL_PASS: ${MAIL_PASS}
       API_DNI_TOKEN: ${API_DNI_TOKEN}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      DEMO_DATA: ${DEMO_DATA:-false}
       TZ: America/Lima
       # U2 - IA
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}

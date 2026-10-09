@@ -27,6 +27,18 @@ docker compose --profile iot up -d --build
 | Broker MQTT | `localhost:1883` |
 | Laboratorio de prompts (Streamlit) | `docker compose --profile ia up -d` y luego http://localhost:8501 |
 
+### Datos de demostración
+
+Con `DEMO_DATA=true` en `.env`, la primera vez que la app arranca con la base sin barberos carga datos ficticios
+coherentes: 4 barberos (sillas 1 a 4), 6 servicios, productos con stock y compras, 20 clientes, 90 días de ventas
+y citas web, gastos del local, una promoción y citas confirmadas para hoy. Si la base ya tiene barberos no hace nada.
+
+| Rol | Usuario | Contraseña |
+|---|---|---|
+| Administrador | `admin@gmail.com` | `ADMIN_PASSWORD` |
+| Secretario | `secretario@gmail.com` | `secretario123` |
+| Cliente | `juan.perez@gmail.com` (o cualquier cliente de demo) | `cliente123` |
+
 ## Ejecutar sin Docker (como en la laptop)
 
 1. MySQL local y un archivo `.env` con `DB_URL`, `DB_USER`, `DB_PASS`, `MAIL_*`, `API_DNI_TOKEN`.
