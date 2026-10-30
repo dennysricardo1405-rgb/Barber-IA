@@ -13,7 +13,9 @@
    **foto de referencia del corte** que el administrador sube en `/admin/cortes` (Catálogo de cortes). Los
    nombres del catálogo van en el prompt para que la IA recomiende cortes que tienen foto.
 5. El cliente **aprueba con su DNI**. En recepción, la tarjeta de la silla (con reserva o atendiendo) muestra
-   la foto del cliente, la foto del corte y los datos del corte. Si el cliente no usó el asesor no se muestra nada.
+   la foto del cliente, la foto del corte y los datos del corte. El barbero ve lo mismo en su panel
+   (`/barbero/panel`), junto con sus reservas de hoy y sus ganancias del mes. Si el cliente no usó el asesor no se
+   muestra nada.
 
 ```mermaid
 sequenceDiagram

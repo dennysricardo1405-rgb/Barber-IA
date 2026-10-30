@@ -37,6 +37,7 @@ y citas web, gastos del local, una promoción y citas confirmadas para hoy. Si l
 |---|---|---|
 | Administrador | `admin@gmail.com` | `ADMIN_PASSWORD` |
 | Secretario | `secretario@gmail.com` | `secretario123` |
+| Barbero (Carlos, silla 1) | `barbero@gmail.com` | `barbero123` |
 | Cliente | `juan.perez@gmail.com` (o cualquier cliente de demo) | `cliente123` |
 
 ## Ejecutar sin Docker (como en la laptop)

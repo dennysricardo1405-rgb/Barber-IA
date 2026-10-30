@@ -133,6 +133,7 @@ public class DemoDataInitializer implements CommandLineRunner {
 
         crearSecretario();
         List<Barbero> barberos = crearBarberos();
+        crearCuentaBarbero(barberos.get(0));
         List<Servicio> servicios = crearServicios();
         List<Producto> productos = crearProductosConStock();
         List<Cliente> clientes = crearClientes();
@@ -159,6 +160,23 @@ public class DemoDataInitializer implements CommandLineRunner {
             u.setEstado(1);
             u.setPerfil(perfil);
             usuarioRepository.save(u);
+        });
+    }
+
+    // El primer barbero puede entrar a su panel con barbero@gmail.com / barbero123
+    private void crearCuentaBarbero(Barbero barbero) {
+        if (usuarioRepository.findByEmail("barbero@gmail.com").isPresent()) {
+            return;
+        }
+        perfilRepository.findByNombrePerfil("Barbero").ifPresent(perfil -> {
+            Usuario u = new Usuario();
+            u.setNombre(barbero.getNombre());
+            u.setEmail("barbero@gmail.com");
+            u.setPassword(passwordEncoder.encode("barbero123"));
+            u.setEstado(1);
+            u.setPerfil(perfil);
+            barbero.setUsuario(usuarioRepository.save(u));
+            barberoRepository.save(barbero);
         });
     }
 

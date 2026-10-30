@@ -171,6 +171,8 @@ function prepararEdicion(btn) {
     document.getElementById('edit-nombre').value       = nombre;
     document.getElementById('edit-especialidad').value = especialidad;
     document.getElementById('edit-telefono').value     = telefono;
+    document.getElementById('edit-correo').value       = btn.dataset.correo || '';
+    document.getElementById('edit-password').value     = '';
 
     const sel = document.getElementById('edit-diaLibre');
     for (const opt of sel.options) {

@@ -66,6 +66,8 @@ public class BarberoController {
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String diaLibre,
             @RequestParam(value = "foto", required = false) MultipartFile foto,
+            @RequestParam(required = false) String correo,
+            @RequestParam(required = false) String password,
             RedirectAttributes redirect) {
         try {
             // ── Validaciones backend ──
@@ -109,6 +111,9 @@ public class BarberoController {
             b.setTelefono(telefono != null ? telefono.trim() : null);
             b.setDiaLibre(diaLibre != null ? diaLibre : "MARTES");
             barberoService.guardar(b, foto);
+            if (!asignarCuenta(b, correo, password, redirect)) {
+                return "redirect:/admin/barberos";
+            }
             redirect.addFlashAttribute("exito", "Barbero registrado correctamente ✓");
 
         } catch (Exception e) {
@@ -126,6 +131,8 @@ public class BarberoController {
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String diaLibre,
             @RequestParam(value = "foto", required = false) MultipartFile foto,
+            @RequestParam(required = false) String correo,
+            @RequestParam(required = false) String password,
             RedirectAttributes redirect) {
         try {
             // ── Validaciones backend ──
@@ -169,13 +176,26 @@ public class BarberoController {
             datos.setTelefono(telefono != null ? telefono.trim() : null);
             datos.setDiaLibre(diaLibre != null ? diaLibre : "MARTES");
             datos.setEstado(1);
-            barberoService.actualizar(id, datos, foto);
+            Barbero actualizado = barberoService.actualizar(id, datos, foto);
+            if (!asignarCuenta(actualizado, correo, password, redirect)) {
+                return "redirect:/admin/barberos";
+            }
             redirect.addFlashAttribute("exito", "Barbero actualizado correctamente ✓");
 
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Error al actualizar: " + e.getMessage());
         }
         return "redirect:/admin/barberos";
+    }
+
+    private boolean asignarCuenta(Barbero b, String correo, String password, RedirectAttributes redirect) {
+        try {
+            barberoService.asignarCuenta(b, correo, password);
+            return true;
+        } catch (IllegalArgumentException e) {
+            redirect.addFlashAttribute("error", "Barbero guardado, pero no se pudo crear su cuenta: " + e.getMessage());
+            return false;
+        }
     }
 
     // ── Cambiar estado ───────────────────────────────────────────

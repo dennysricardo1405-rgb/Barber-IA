@@ -63,6 +63,8 @@ class DemoDataInitializerTest {
     void usuariosDeDemoPuedenIniciarSesion() throws Exception {
         mvc.perform(formLogin("/cliente/login").user("secretario@gmail.com").password("secretario123"))
                 .andExpect(authenticated().withRoles("SECRETARIO"));
+        mvc.perform(formLogin("/cliente/login").user("barbero@gmail.com").password("barbero123"))
+                .andExpect(authenticated().withRoles("BARBERO"));
         mvc.perform(formLogin("/cliente/login").user("juan.perez@gmail.com").password("cliente123"))
                 .andExpect(authenticated().withRoles("CLIENTE"));
     }
