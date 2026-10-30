@@ -222,9 +222,8 @@
                     <!-- Detalles productos -->
                     <div class="mb-2">
                         <div th:each="det : ${pedido.detalles}" class="detalle-item">
-                            <img th:src="${det.producto.imagen != null and !det.producto.imagen.isEmpty()
-                   ? det.producto.imagen
-                   : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}" class="detalle-img"
+                            <img th:if="${det.producto.imagen != null and !det.producto.imagen.isEmpty()}"
+                                th:src="${det.producto.imagen}" class="detalle-img"
                                 th:alt="${det.producto.nombre}">
                             <div>
                                 <div class="detalle-nombre">

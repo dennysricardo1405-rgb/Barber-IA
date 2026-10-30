@@ -334,9 +334,9 @@
                         <div class="service-item">
                             <img th:if="${srv.imagenUrl != null and !srv.imagenUrl.isEmpty()}" th:src="${srv.imagenUrl}"
                                 th:alt="${srv.nombre}">
-                            <img th:if="${srv.imagenUrl == null or srv.imagenUrl.isEmpty()}"
-                                src="https://i.pinimg.com/736x/c2/8e/bb/c28ebbb903a0e46f3da16a66af0c463d.jpg"
-                                th:alt="${srv.nombre}">
+                            <div th:if="${srv.imagenUrl == null or srv.imagenUrl.isEmpty()}" class="foto-vacia">
+                                <i class="fa-solid fa-scissors"></i>
+                            </div>
                             <div class="service-overlay">
                                 <h4 th:text="${srv.nombre}">Corte Clásico</h4>
                                 <p th:text="${srv.descripcion ?: 'Servicio profesional de barbería'}"></p>
@@ -387,8 +387,11 @@
                             </div>
 
                             <div class="img-container">
-                                <img th:src="${prod.imagen != null && !prod.imagen.isEmpty() ? prod.imagen : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}"
+                                <img th:if="${prod.imagen != null && !prod.imagen.isEmpty()}" th:src="${prod.imagen}"
                                     th:alt="${prod.nombre}">
+                                <div th:unless="${prod.imagen != null && !prod.imagen.isEmpty()}" class="foto-vacia">
+                                    <i class="fa-solid fa-box-open"></i>
+                                </div>
 
                                 <div th:if="${prod.stock == 0}" class="badge-agotado-overlay">
                                 </div>
@@ -657,9 +660,11 @@
                                     <div class="col-md-4" th:each="bar : ${barberos}">
                                         <div class="p-3 text-center rounded-3 card-modal-item"
                                             th:attr="onclick='mdlSeleccionarBarbero(\'' + ${bar.id} + '\')'">
-                                            <img th:src="${bar.imagen != null} ? ${bar.imagen} : '/images/default-avatar.png'"
+                                            <img th:if="${bar.imagen != null and !bar.imagen.isEmpty()}" th:src="${bar.imagen}"
                                                 class="rounded-circle mb-2"
                                                 style="width:60px;height:60px;object-fit:cover;border:2px solid #c9a84c;">
+                                            <i th:unless="${bar.imagen != null and !bar.imagen.isEmpty()}"
+                                                class="fa-solid fa-user-tie fa-2x mb-2 d-block" style="color:#c9a84c"></i>
                                             <span class="fw-bold text-white d-block" th:text="${bar.nombre}"></span>
                                             <small class="text-muted" th:text="${bar.especialidad}"></small>
                                         </div>

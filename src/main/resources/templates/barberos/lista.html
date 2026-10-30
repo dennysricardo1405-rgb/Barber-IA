@@ -204,7 +204,8 @@
                                             onclick="prepararEdicion(this)" th:data-id="${b.id}"
                                             th:data-nombre="${b.nombre}" th:data-especialidad="${b.especialidad}"
                                             th:data-telefono="${b.telefono}" th:data-dialib="${b.diaLibre}"
-                                            th:data-imagen="${b.imagen}" title="Editar">
+                                            th:data-imagen="${b.imagen}"
+                                            th:data-correo="${b.usuario != null ? b.usuario.email : ''}" title="Editar">
                                             <i class="fa-solid fa-pen"></i>
                                         </button>
                                     </td>
@@ -333,6 +334,19 @@
                                 <option th:each="dia : ${dias}" th:value="${dia}" th:text="${dia}"></option>
                             </select>
                         </div>
+                        <div class="border-top pt-3">
+                            <label class="form-label fw-bold small text-uppercase">Cuenta para su panel (opcional)</label>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <input type="email" name="correo" class="form-control" placeholder="Correo" autocomplete="off" />
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="password" name="password" class="form-control" placeholder="Contraseña"
+                                        autocomplete="new-password" />
+                                </div>
+                            </div>
+                            <small class="text-muted">Con este correo el barbero entra a ver su silla, reservas y ganancias.</small>
+                        </div>
                     </div>
 
                     <div class="modal-footer bg-light border-0">
@@ -396,6 +410,20 @@
                             <select name="diaLibre" id="edit-diaLibre" class="form-select">
                                 <option th:each="dia : ${dias}" th:value="${dia}" th:text="${dia}"></option>
                             </select>
+                        </div>
+                        <div class="border-top pt-3">
+                            <label class="form-label fw-bold small text-uppercase">Cuenta para su panel</label>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <input type="email" name="correo" id="edit-correo" class="form-control" placeholder="Correo"
+                                        autocomplete="off" />
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="password" name="password" id="edit-password" class="form-control"
+                                        placeholder="Nueva contraseña" autocomplete="new-password" />
+                                </div>
+                            </div>
+                            <small class="text-muted">Deja la contraseña vacía para no cambiarla.</small>
                         </div>
                     </div>
 

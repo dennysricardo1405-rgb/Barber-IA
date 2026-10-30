@@ -7,6 +7,7 @@
     <title>Sillas en Vivo | La Clásica</title>
     <div th:replace="~{layout/sidebar :: head_comun}"></div>
     <link rel="stylesheet" th:href="@{/css/recepcion-premium.css}">
+    <link rel="stylesheet" th:href="@{/css/corte-ia.css}">
     <style>
         .tabla-productos-scroll {
             max-height: 280px;
@@ -50,7 +51,8 @@
                     <th:block th:with="
             enSesionActiva=${enSesion.containsKey(barbero.id)},
             tieneReserva=${reservasHoy.containsKey(barbero.id)},
-            reserva=${reservasHoy.get(barbero.id)}">
+            reserva=${reservasHoy.get(barbero.id)},
+            corteIA=${cortesIA.get(barbero.id)}">
 
                         <div class="card card-silla shadow-sm" th:classappend="${enSesionActiva} ? 'silla-ocupada' :
                                  (${tieneReserva} ? 'silla-reservada' : 'silla-disponible')">
@@ -69,12 +71,19 @@
                                 </div>
 
                                 <div class="avatar-container mb-3">
-                                    <img th:src="${barbero.imagen != null} ? ${barbero.imagen} : '/images/default-avatar.png'"
-                                        class="img-barbero shadow-sm" th:alt="${barbero.nombre}">
+                                    <img th:if="${barbero.imagen != null and !barbero.imagen.isEmpty()}"
+                                        th:src="${barbero.imagen}" class="img-barbero shadow-sm" th:alt="${barbero.nombre}">
+                                    <div th:unless="${barbero.imagen != null and !barbero.imagen.isEmpty()}"
+                                        class="img-barbero img-barbero-vacia shadow-sm mx-auto">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
                                 </div>
 
                                 <h5 class="fw-bold text-white m-0 lh-base" th:text="${barbero.nombre}"></h5>
                                 <p class="text-gold small mb-3" th:text="${barbero.especialidad}"></p>
+
+                                <!-- U2: corte aprobado por el cliente con el asesor IA (si no lo usó, no se muestra nada) -->
+                                <div th:replace="~{fragments/corte-ia :: corte_ia(${corteIA})}"></div>
 
                                 <!-- ══ CON RESERVA Y SIN SESIÓN ══ -->
                                 <div th:if="${tieneReserva and !enSesionActiva}" class="d-flex flex-column gap-2">
@@ -89,12 +98,6 @@
                                             </span>
                                         </div>
                                         <div th:text="${reserva?.servicio?.nombre}"></div>
-                                        <!-- U2: corte aprobado por el cliente con el asesor IA -->
-                                        <button type="button" th:if="${reserva?.cliente != null}"
-                                            class="btn btn-link btn-sm p-0 text-decoration-none btn-corte-ia"
-                                            th:data-cliente-id="${reserva.cliente.id}">
-                                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Ver corte IA
-                                        </button>
                                         <div class="font-monospace" th:text="${reserva?.horaInicio != null ? 
                                            #temporals.format(reserva.horaInicio,'HH:mm') : ''}">
                                         </div>

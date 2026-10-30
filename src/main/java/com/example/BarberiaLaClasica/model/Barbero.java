@@ -1,5 +1,7 @@
 package com.example.BarberiaLaClasica.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,6 +29,12 @@ public class Barbero {
     private int estado = 1;
 
     private String imagen;   // ← único campo nuevo: ruta /uploads/barberos/archivo.jpg
+
+    // Cuenta para entrar a su panel (/barbero/panel); null si no tiene acceso
+    @JsonIgnore
+    @OneToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @CreationTimestamp
     @Column(name = "fecha_registro", updatable = false)

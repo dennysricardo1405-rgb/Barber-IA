@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Catálogo de Cortes | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <style>
+        .foto-corte {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid rgba(201, 168, 76, 0.4);
+        }
+
+        .preview-corte {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='cortes')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0 text-primary">Catálogo de Cortes</h2>
+                    <p class="text-muted m-0 small">Foto de referencia de cada corte. El asesor IA la muestra cuando
+                        recomienda ese corte.</p>
+                </div>
+                <button class="btn btn-primary shadow-sm" onclick="abrirCorte(null)">
+                    <i class="fa-solid fa-plus me-2"></i> Nuevo Corte
+                </button>
+            </div>
+
+            <div th:if="${exito}" class="alert alert-success alert-dismissible fade show">
+                <i class="fa-solid fa-circle-check me-2"></i><span th:text="${exito}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fa-solid fa-circle-xmark me-2"></i><span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase small">
+                                <tr>
+                                    <th class="ps-4">Foto</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th>Visible en el asesor</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${cortes}">
+                                    <td class="ps-4">
+                                        <img th:if="${c.imagen != null}" th:src="${c.imagen}" class="foto-corte"
+                                            th:alt="${c.nombre}">
+                                    </td>
+                                    <td class="fw-semibold text-white" th:text="${c.nombre}"></td>
+                                    <td class="text-muted small" th:text="${c.descripcion}"></td>
+                                    <td>
+                                        <form th:action="@{/admin/cortes/{id}/estado(id=${c.id})}" method="post">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                            <label class="switch mb-0">
+                                                <input type="checkbox" th:checked="${c.activo}" onchange="this.form.submit()">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </form>
+                                    </td>
+                                    <td class="d-flex gap-1">
+                                        <button class="btn btn-sm btn-outline-warning rounded-circle" title="Editar"
+                                            onclick="abrirCorte(this)" th:data-id="${c.id}" th:data-nombre="${c.nombre}"
+                                            th:data-descripcion="${c.descripcion}" th:data-imagen="${c.imagen}">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form th:action="@{/admin/cortes/{id}/eliminar(id=${c.id})}" method="post"
+                                            onsubmit="return confirm('¿Eliminar este corte del catálogo?')">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                            <button class="btn btn-sm btn-outline-danger rounded-circle" title="Eliminar">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(cortes)}">
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="fa-solid fa-scissors d-block fs-3 mb-2"></i>
+                                        Aún no hay cortes. Agrega por ejemplo Low fade, Mid fade o Pompadour con su foto.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCorte" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="tituloModalCorte">Nuevo Corte</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/cortes/guardar}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <input type="hidden" name="id" id="corteId">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase">Nombre del corte</label>
+                            <input type="text" name="nombre" id="corteNombre" class="form-control" maxlength="80"
+                                placeholder="Ej: Low fade" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase">Descripción</label>
+                            <input type="text" name="descripcion" id="corteDescripcion" class="form-control"
+                                maxlength="255" placeholder="Opcional">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small text-uppercase">Foto de referencia</label>
+                            <input type="file" name="foto" id="corteFoto" class="form-control"
+                                accept="image/jpeg,image/png,image/webp,image/gif">
+                            <small class="text-muted" id="ayudaFoto">Selecciona la imagen desde tu equipo.</small>
+                        </div>
+                        <img id="previewCorte" class="preview-corte d-none mt-2" alt="">
+                    </div>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const preview = document.getElementById('previewCorte');
+        const inputFoto = document.getElementById('corteFoto');
+
+        function abrirCorte(btn) {
+            const d = btn ? btn.dataset : {};
+            document.getElementById('tituloModalCorte').textContent = btn ? 'Editar Corte' : 'Nuevo Corte';
+            document.getElementById('corteId').value = d.id || '';
+            document.getElementById('corteNombre').value = d.nombre || '';
+            document.getElementById('corteDescripcion').value = d.descripcion || '';
+            inputFoto.value = '';
+            inputFoto.required = !btn;
+            document.getElementById('ayudaFoto').textContent = btn
+                ? 'Déjalo vacío para mantener la foto actual.'
+                : 'Selecciona la imagen desde tu equipo.';
+            preview.src = d.imagen || '';
+            preview.classList.toggle('d-none', !d.imagen);
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCorte')).show();
+        }
+
+        inputFoto.addEventListener('change', () => {
+            if (!inputFoto.files[0]) return;
+            preview.src = URL.createObjectURL(inputFoto.files[0]);
+            preview.classList.remove('d-none');
+        });
+    </script>
+</body>
+
+</html>

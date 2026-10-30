@@ -158,9 +158,8 @@
             <!-- Productos del pedido -->
             <div class="pedido-items">
                 <div th:each="det : ${pedido.detalles}" class="pedido-item-row">
-                    <img th:src="${det.producto.imagen != null and !det.producto.imagen.isEmpty()
-                                   ? det.producto.imagen
-                                   : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}"
+                    <img th:if="${det.producto.imagen != null and !det.producto.imagen.isEmpty()}"
+                         th:src="${det.producto.imagen}"
                          th:alt="${det.producto.nombre}"
                          class="pedido-item-img">
                     <div>

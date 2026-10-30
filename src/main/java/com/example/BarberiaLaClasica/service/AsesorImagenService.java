@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.BarberiaLaClasica.dto.CorteIAVista;
 import com.example.BarberiaLaClasica.dto.RecomendacionCorte;
 import com.example.BarberiaLaClasica.dto.ResultadoAsesor;
 import com.example.BarberiaLaClasica.model.Cliente;
@@ -44,13 +45,15 @@ public class AsesorImagenService {
     private final ServicioRepository servicioRepository;
     private final ClienteRepository clienteRepository;
     private final RecomendacionIARepository recomendacionRepository;
+    private final CorteReferenciaService cortesReferencia;
     private final ObjectMapper objectMapper;
     private final boolean generarPreview;
     private final String carpetaUploads;
 
     public AsesorImagenService(GeminiClient gemini, PromptLibrary prompts,
             ServicioRepository servicioRepository, ClienteRepository clienteRepository,
-            RecomendacionIARepository recomendacionRepository, ObjectMapper objectMapper,
+            RecomendacionIARepository recomendacionRepository, CorteReferenciaService cortesReferencia,
+            ObjectMapper objectMapper,
             @Value("${gemini.preview.enabled:true}") boolean generarPreview,
             @Value("${app.uploads.root:uploads}") String carpetaUploads) {
         this.gemini = gemini;
@@ -58,6 +61,7 @@ public class AsesorImagenService {
         this.servicioRepository = servicioRepository;
         this.clienteRepository = clienteRepository;
         this.recomendacionRepository = recomendacionRepository;
+        this.cortesReferencia = cortesReferencia;
         this.objectMapper = objectMapper;
         this.generarPreview = generarPreview;
         this.carpetaUploads = carpetaUploads;
@@ -81,7 +85,7 @@ public class AsesorImagenService {
         } else {
             String json = gemini.analizarImagenJson(
                     prompts.sistemaAsesor(),
-                    prompts.usuarioAsesor(estrategia, catalogo()),
+                    prompts.usuarioAsesor(estrategia, catalogo(), cortesReferencia.nombresParaPrompt()),
                     imagen, 0.4);
             recomendacion = parsear(json);
             if (generarPreview && recomendacion.isRostroDetectado() && recomendacion.getCorteRecomendado() != null) {
@@ -89,6 +93,10 @@ public class AsesorImagenService {
             }
         }
         long latencia = System.currentTimeMillis() - inicio;
+        for (RecomendacionCorte.Corte c : recomendacion.getCortes()) {
+            c.setFotoReferencia(cortesReferencia.fotoDe(c.getNombre()));
+        }
+        String fotoCorteUrl = cortesReferencia.fotoDe(recomendacion.getCorteRecomendado());
 
         RecomendacionIA entidad = new RecomendacionIA();
         entidad.setEstrategia(estrategia.name());
@@ -109,7 +117,7 @@ public class AsesorImagenService {
         recomendacionRepository.save(entidad);
 
         return new ResultadoAsesor(entidad.getId(), entidad.getEstrategia(), entidad.getModelo(), demo,
-                latencia, fotoUrl, previewUrl, recomendacion);
+                latencia, fotoUrl, previewUrl, fotoCorteUrl, recomendacion);
     }
 
     /** El cliente aprueba el corte con su DNI; queda vinculado para que el barbero lo vea. */
@@ -131,6 +139,21 @@ public class AsesorImagenService {
 
     public Optional<RecomendacionIA> ultimaAprobada(Long clienteId) {
         return recomendacionRepository.findFirstByClienteIdAndAprobadaTrueOrderByFechaRegistroDesc(clienteId);
+    }
+
+    /**
+     * Fotos del último corte aprobado para la tarjeta de la silla. Si el cliente no usó
+     * el asesor devuelve vacío y el panel no muestra nada.
+     */
+    public Optional<CorteIAVista> vistaParaBarbero(Long clienteId) {
+        if (clienteId == null) return Optional.empty();
+        return ultimaAprobada(clienteId).map(r -> {
+            // en modo demo o si falla la edición, la "vista previa" es la misma foto original
+            boolean hayPreview = r.getPreviewUrl() != null && !r.getPreviewUrl().equals(r.getFotoUrl());
+            String fotoCorte = hayPreview ? r.getPreviewUrl() : cortesReferencia.fotoDe(r.getCorteRecomendado());
+            return new CorteIAVista(r.getCorteRecomendado(), r.getFormaRostro(), r.getMantenimientoSemanas(),
+                    r.getFotoUrl(), fotoCorte);
+        });
     }
 
     RecomendacionCorte parsear(String json) {

@@ -2,6 +2,10 @@
 {{catalogo}}
 </catalogo>
 
+<cortes_con_foto>
+{{cortes}}
+</cortes_con_foto>
+
 <tarea>
 Analiza la fotografía adjunta del cliente y devuelve la recomendación en el formato JSON indicado.
 </tarea>

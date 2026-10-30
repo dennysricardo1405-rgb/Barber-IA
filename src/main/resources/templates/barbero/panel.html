@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Mi Panel | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/corte-ia.css}">
+    <style>
+        .text-gold { color: #c9a84c; }
+        .card-panel { background: #141414; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; }
+        .icon-shape { width: 48px; height: 48px; background: rgba(201, 168, 76, 0.1); color: #c9a84c; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .foto-barbero { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #c9a84c; }
+        .silla-actual .corte-ia-foto { max-width: 180px; }
+        .reserva-item { border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+        .reserva-item:last-child { border-bottom: 0; }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='dashboard')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div th:if="${sinBarbero}" class="alert alert-warning">
+                Tu usuario no está vinculado a ningún barbero. Pide al administrador que te asigne la cuenta desde
+                Barberos.
+            </div>
+
+            <th:block th:unless="${sinBarbero}">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <img th:if="${barbero.imagen != null and !barbero.imagen.isEmpty()}" th:src="${barbero.imagen}"
+                        class="foto-barbero" th:alt="${barbero.nombre}">
+                    <div>
+                        <h2 class="fw-bold m-0 text-primary" th:text="'Hola, ' + ${barbero.nombre}">Hola</h2>
+                        <p class="text-muted m-0 small">
+                            <span th:text="'Silla #' + ${barbero.id}"></span>
+                            <span th:if="${barbero.especialidad != null}" th:text="' · ' + ${barbero.especialidad}"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Silla actual -->
+                    <div class="col-lg-7">
+                        <div class="card-panel p-4 h-100 silla-actual">
+                            <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-chair me-2 text-gold"></i>Mi silla</h5>
+                            <div th:if="${sesion == null}" class="text-muted">Tu silla está libre.</div>
+                            <div th:if="${sesion != null}">
+                                <div class="text-white fw-bold fs-5"
+                                    th:text="${sesion.cliente != null ? sesion.cliente.nombres + ' ' + sesion.cliente.apellidos : 'Cliente sin registro'}">
+                                </div>
+                                <div class="text-muted small mb-3">
+                                    <span th:text="${sesion.servicio?.nombre}"></span>
+                                    <span th:if="${sesion.inicio != null}"
+                                        th:text="' · desde las ' + ${#temporals.format(sesion.inicio, 'HH:mm')}"></span>
+                                </div>
+                                <div th:replace="~{fragments/corte-ia :: corte_ia(${corteActual})}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen -->
+                    <div class="col-lg-5" id="ganancias">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="card-panel p-3 d-flex align-items-center gap-3">
+                                    <div class="icon-shape"><i class="fa-solid fa-scissors"></i></div>
+                                    <div>
+                                        <div class="text-muted small">Atenciones hoy</div>
+                                        <div class="fs-4 fw-bold text-white" th:text="${atencionesHoy}">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card-panel p-3 d-flex align-items-center gap-3">
+                                    <div class="icon-shape"><i class="fa-solid fa-calendar"></i></div>
+                                    <div>
+                                        <div class="text-muted small">Atenciones del mes</div>
+                                        <div class="fs-4 fw-bold text-white" th:text="${atencionesMes}">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="card-panel p-3">
+                                    <div class="text-muted small">Generado este mes</div>
+                                    <div class="fs-5 fw-bold text-white"
+                                        th:text="'S/ ' + ${#numbers.formatDecimal(totalMes, 1, 2)}">S/ 0.00</div>
+                                    <div class="text-muted small mt-2">Tu comisión (50%)</div>
+                                    <div class="fs-3 fw-bold text-gold"
+                                        th:text="'S/ ' + ${#numbers.formatDecimal(comisionMes, 1, 2)}">S/ 0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reservas de hoy -->
+                    <div class="col-lg-7" id="reservas">
+                        <div class="card-panel p-4">
+                            <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-calendar-day me-2 text-gold"></i>Reservas de hoy</h5>
+                            <div th:if="${#lists.isEmpty(reservas)}" class="text-muted">No tienes reservas para hoy.</div>
+                            <div th:each="r : ${reservas}" class="reserva-item py-3">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="fw-bold text-white"
+                                            th:text="${r.cliente != null ? r.cliente.nombres + ' ' + r.cliente.apellidos : 'Cliente'}"></div>
+                                        <div class="text-muted small" th:text="${r.servicio?.nombre}"></div>
+                                    </div>
+                                    <span class="font-monospace fw-bold text-gold"
+                                        th:text="${r.horaInicio != null ? #temporals.format(r.horaInicio, 'HH:mm') : ''}"></span>
+                                </div>
+                                <div class="mt-2" th:replace="~{fragments/corte-ia :: corte_ia(${cortesReserva.get(r.id)})}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Últimas atenciones -->
+                    <div class="col-lg-5">
+                        <div class="card-panel p-4">
+                            <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-receipt me-2 text-gold"></i>Últimas atenciones</h5>
+                            <div th:if="${#lists.isEmpty(ultimasNotas)}" class="text-muted">Aún no tienes atenciones este mes.</div>
+                            <div th:each="n : ${ultimasNotas}" class="d-flex justify-content-between small py-1">
+                                <span class="text-white-50"
+                                    th:text="${(n.fecha != null ? #temporals.format(n.fecha, 'dd/MM HH:mm') + ' · ' : '')
+                                        + (n.cliente != null ? n.cliente.nombres : 'Público general')}"></span>
+                                <span class="text-white font-monospace" th:text="'S/ ' + ${#numbers.formatDecimal(n.total, 1, 2)}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

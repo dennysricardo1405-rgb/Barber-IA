@@ -73,6 +73,9 @@ public class SecurityConfig {
                         // 5. ✅ Secretario (Su panel exclusivo de recepción en vivo)
                         .requestMatchers("/secretario/**").hasRole("SECRETARIO")
 
+                        // Panel del barbero: su silla, reservas de hoy y ganancias
+                        .requestMatchers("/barbero/**").hasRole("BARBERO")
+
                         // 6. ✅ Área del cliente web
                         .requestMatchers("/cliente/dashboard/**", "/cliente/perfil/**").hasRole("CLIENTE")
                         .requestMatchers("/api/carrito/**").permitAll()
@@ -101,6 +104,8 @@ public class SecurityConfig {
                                 response.sendRedirect("/admin/dashboard");
                             } else if (role.equals("ROLE_SECRETARIO")) {
                                 response.sendRedirect("/secretario/dashboard");
+                            } else if (role.equals("ROLE_BARBERO")) {
+                                response.sendRedirect("/barbero/panel");
                             } else if (role.equals("ROLE_CLIENTE")) {
                                 // Si venía del flujo de reserva, manda al pago
                                 HttpSession session = request.getSession(false);

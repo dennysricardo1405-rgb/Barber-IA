@@ -5,14 +5,11 @@ import com.example.BarberiaLaClasica.model.Producto;
 import com.example.BarberiaLaClasica.model.Proveedor;
 import com.example.BarberiaLaClasica.repository.CategoriaRepository;
 import com.example.BarberiaLaClasica.repository.CompraProveedorRepository;
+import com.example.BarberiaLaClasica.service.AlmacenImagenes;
 import com.example.BarberiaLaClasica.service.ProductoService;
 import com.example.BarberiaLaClasica.service.ProveedorService;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,6 +32,9 @@ public class ProductoController {
 
     @Autowired
     private CategoriaRepository categoriaRepository;
+
+    @Autowired
+    private AlmacenImagenes almacenImagenes;
 
     // 1. LISTAR PRODUCTOS CON PAGINACIÓN
     @GetMapping("")
@@ -67,19 +67,8 @@ public class ProductoController {
             @RequestParam("imagenFile") MultipartFile file) {
         try {
             if (!file.isEmpty()) {
-                String rutaBase = System.getProperty("user.dir") + "/uploads/productos";
-                Path directorioPath = Paths.get(rutaBase);
-
-                if (!Files.exists(directorioPath)) {
-                    Files.createDirectories(directorioPath);
-                }
-
-                String nombreUnicoArchivo = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                Path rutaAbsoluta = directorioPath.resolve(nombreUnicoArchivo);
-
-                Files.copy(file.getInputStream(), rutaAbsoluta);
-
-                producto.setImagen("/uploads/productos/" + nombreUnicoArchivo);
+                // se guarda en la carpeta uploads (volumen de Docker) con un nombre generado
+                producto.setImagen(almacenImagenes.guardar(file, "productos"));
 
             } else if (producto.getId() != null) {
                 Producto productoExistente = productoService.buscarPorId(producto.getId());
@@ -94,8 +83,9 @@ public class ProductoController {
 
             productoService.guardar(producto);
 
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
+            return "redirect:/admin/productos?errorImagen";
         }
 
         return "redirect:/admin/productos?exito";

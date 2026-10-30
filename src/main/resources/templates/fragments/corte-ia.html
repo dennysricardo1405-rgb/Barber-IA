@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <!-- Fotos del cliente y del corte que aprobó con el asesor IA; si no hay, no se muestra nada -->
+    <div th:fragment="corte_ia(corteIA)" th:if="${corteIA != null}" class="corte-ia mb-3 text-start">
+        <div th:if="${corteIA.tieneFotos()}" class="corte-ia-fotos">
+            <a th:if="${corteIA.fotoCliente != null}" th:href="${corteIA.fotoCliente}"
+                target="_blank" class="corte-ia-foto">
+                <img th:src="${corteIA.fotoCliente}" alt="Foto del cliente">
+                <span>Cliente</span>
+            </a>
+            <a th:if="${corteIA.fotoCorte != null}" th:href="${corteIA.fotoCorte}"
+                target="_blank" class="corte-ia-foto">
+                <img th:src="${corteIA.fotoCorte}" th:alt="${corteIA.corte}">
+                <span>Corte</span>
+            </a>
+        </div>
+        <div class="small mt-2">
+            <div th:if="${corteIA.corte != null}" class="fw-bold text-gold">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i><span th:text="${corteIA.corte}"></span>
+            </div>
+            <div class="text-white-50" th:if="${corteIA.formaRostro != null or corteIA.mantenimientoSemanas != null}"
+                th:text="${(corteIA.formaRostro != null ? 'Rostro ' + #strings.toLowerCase(corteIA.formaRostro) : '')
+                    + (corteIA.formaRostro != null and corteIA.mantenimientoSemanas != null ? ' · ' : '')
+                    + (corteIA.mantenimientoSemanas != null ? 'retoque cada ' + corteIA.mantenimientoSemanas + ' semanas' : '')}">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

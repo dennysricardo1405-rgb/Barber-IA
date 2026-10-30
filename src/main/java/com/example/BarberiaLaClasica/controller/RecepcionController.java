@@ -15,6 +15,7 @@ import java.util.*;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.BarberiaLaClasica.service.AsesorImagenService;
 import com.example.BarberiaLaClasica.service.BarberoService;
 import com.example.BarberiaLaClasica.service.ProductoService;
 import com.example.BarberiaLaClasica.service.PromocionHelper;
@@ -24,6 +25,7 @@ import com.example.BarberiaLaClasica.service.CategoriaService;
 import com.example.BarberiaLaClasica.repository.ServicioRepository;
 import com.example.BarberiaLaClasica.repository.DetalleNotaVentaRepository;
 import com.example.BarberiaLaClasica.repository.NotaVentaRepository;
+import com.example.BarberiaLaClasica.dto.CorteIAVista;
 import com.example.BarberiaLaClasica.model.Barbero;
 import com.example.BarberiaLaClasica.model.Categoria;
 import com.example.BarberiaLaClasica.model.Cita;
@@ -55,6 +57,8 @@ public class RecepcionController {
     private DetalleNotaVentaRepository detalleNotaVentaRepository;
     @Autowired
     private NotaVentaRepository notaVentaRepository;
+    @Autowired
+    private AsesorImagenService asesorImagenService;
 
     // ── Panel principal con PAGINACIÓN ───────────────────────────────────────
     @GetMapping("/recepcion")
@@ -66,12 +70,23 @@ public class RecepcionController {
 
         Map<Long, Cita> reservasHoy = new HashMap<>();
         Map<Long, Boolean> enSesion = new HashMap<>();
+        // U2: corte aprobado con el asesor IA del cliente que espera o está en la silla
+        Map<Long, CorteIAVista> cortesIA = new HashMap<>();
 
         for (Barbero b : barberos) {
             recepcionService.getCitaReservaHoy(b.getId())
                     .ifPresent(c -> reservasHoy.put(b.getId(), c));
-            recepcionService.getSessionActiva(b.getId())
-                    .ifPresent(s -> enSesion.put(b.getId(), true));
+            Cliente clienteSilla = recepcionService.getSessionActiva(b.getId())
+                    .map(s -> {
+                        enSesion.put(b.getId(), true);
+                        return s.getCliente();
+                    })
+                    .orElseGet(() -> reservasHoy.containsKey(b.getId())
+                            ? reservasHoy.get(b.getId()).getCliente() : null);
+            if (clienteSilla != null) {
+                asesorImagenService.vistaParaBarbero(clienteSilla.getId())
+                        .ifPresent(v -> cortesIA.put(b.getId(), v));
+            }
         }
 
         // Paginación para Reservas Web de Hoy
@@ -81,6 +96,7 @@ public class RecepcionController {
         model.addAttribute("barberos", barberos);
         model.addAttribute("reservasHoy", reservasHoy);
         model.addAttribute("enSesion", enSesion);
+        model.addAttribute("cortesIA", cortesIA);
         model.addAttribute("servicios", servicioRepository.findByEstado(1));
         model.addAttribute("productos", productoService.listarTodos());
         model.addAttribute("clientesExistentes", clienteService.listarTodos());

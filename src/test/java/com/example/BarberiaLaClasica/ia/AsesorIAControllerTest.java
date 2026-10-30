@@ -21,8 +21,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.BarberiaLaClasica.model.Cliente;
+import com.example.BarberiaLaClasica.model.CorteReferencia;
 import com.example.BarberiaLaClasica.model.RecomendacionIA;
+import com.example.BarberiaLaClasica.model.Barbero;
+import com.example.BarberiaLaClasica.model.Servicio;
+import com.example.BarberiaLaClasica.model.SillaSession;
+import com.example.BarberiaLaClasica.repository.BarberoRepository;
 import com.example.BarberiaLaClasica.repository.ClienteRepository;
+import com.example.BarberiaLaClasica.repository.ServicioRepository;
+import com.example.BarberiaLaClasica.repository.SillaSessionRepository;
+import com.example.BarberiaLaClasica.repository.CorteReferenciaRepository;
 import com.example.BarberiaLaClasica.repository.RecomendacionIARepository;
 import com.example.BarberiaLaClasica.service.GeminiClient;
 
@@ -36,6 +44,14 @@ class AsesorIAControllerTest {
     private ClienteRepository clienteRepository;
     @Autowired
     private RecomendacionIARepository recomendacionRepository;
+    @Autowired
+    private CorteReferenciaRepository corteReferenciaRepository;
+    @Autowired
+    private BarberoRepository barberoRepository;
+    @Autowired
+    private ServicioRepository servicioRepository;
+    @Autowired
+    private SillaSessionRepository sillaSessionRepository;
     @MockitoBean
     private GeminiClient gemini;
 
@@ -86,6 +102,24 @@ class AsesorIAControllerTest {
     }
 
     @Test
+    void muestraLaFotoDelCorteRecomendadoSiEstaEnElCatalogo() throws Exception {
+        when(gemini.configurado()).thenReturn(false);
+        CorteReferencia corte = new CorteReferencia();
+        corte.setNombre("Pompadour clásico");
+        corte.setImagen("/uploads/cortes/pompadour.jpg");
+        corteReferenciaRepository.save(corte);
+        try {
+            mvc.perform(multipart("/api/ia/asesor").file(selfie))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.fotoCorteUrl").value("/uploads/cortes/pompadour.jpg"))
+                    .andExpect(jsonPath("$.recomendacion.cortes[0].fotoReferencia").value("/uploads/cortes/pompadour.jpg"))
+                    .andExpect(jsonPath("$.recomendacion.cortes[1].fotoReferencia").doesNotExist());
+        } finally {
+            corteReferenciaRepository.deleteAll();
+        }
+    }
+
+    @Test
     void rechazaArchivosQueNoSonImagen() throws Exception {
         MockMultipartFile pdf = new MockMultipartFile("foto", "doc.pdf", "application/pdf", new byte[] { 1 });
         mvc.perform(multipart("/api/ia/asesor").file(pdf))
@@ -124,5 +158,60 @@ class AsesorIAControllerTest {
         Long id = com.jayway.jsonpath.JsonPath.parse(json).read("$.id", Long.class);
         mvc.perform(post("/api/ia/asesor/" + id + "/aprobar").param("dni", "99999999"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETARIO")
+    void laSillaMuestraLasFotosDelCorteAprobado() throws Exception {
+        Cliente c = new Cliente();
+        c.setDni("70000002");
+        c.setNombres("Luis");
+        c.setApellidos("Rojas");
+        c.setCorreo("luis.ia@test.pe");
+        c = clienteRepository.save(c);
+
+        RecomendacionIA rec = new RecomendacionIA();
+        rec.setEstrategia("FEW_SHOT");
+        rec.setCliente(c);
+        rec.setAprobada(true);
+        rec.setCorteRecomendado("Low fade");
+        rec.setFotoUrl("/uploads/ia/fotos/luis.jpg");
+        rec.setPreviewUrl("/uploads/ia/fotos/luis.jpg");
+        recomendacionRepository.save(rec);
+
+        CorteReferencia corte = new CorteReferencia();
+        corte.setNombre("Low fade");
+        corte.setImagen("/uploads/cortes/low-fade.jpg");
+        corteReferenciaRepository.save(corte);
+
+        Servicio servicio = new Servicio();
+        servicio.setNombre("Corte test");
+        servicio.setPrecio(java.math.BigDecimal.TEN);
+        servicio = servicioRepository.save(servicio);
+        Barbero barbero = new Barbero();
+        barbero.setNombre("Pedro Silla");
+        barbero = barberoRepository.save(barbero);
+        SillaSession sesion = new SillaSession();
+        sesion.setBarbero(barbero);
+        sesion.setServicio(servicio);
+        sesion.setCliente(c);
+        sillaSessionRepository.save(sesion);
+        try {
+            mvc.perform(get("/secretario/recepcion"))
+                    .andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                            .string(org.hamcrest.Matchers.allOf(
+                                    org.hamcrest.Matchers.containsString("/uploads/ia/fotos/luis.jpg"),
+                                    org.hamcrest.Matchers.containsString("/uploads/cortes/low-fade.jpg"))));
+        } finally {
+            sillaSessionRepository.deleteAll();
+            corteReferenciaRepository.deleteAll();
+        }
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMINISTRADOR")
+    void paginaDelCatalogoDeCortes() throws Exception {
+        mvc.perform(get("/admin/cortes")).andExpect(status().isOk());
     }
 }

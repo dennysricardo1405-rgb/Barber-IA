@@ -27,7 +27,8 @@
         <nav class="mt-4">
 
             <!-- DASHBOARD -->
-            <a th:href="${#authorization.expression('hasRole(''ADMINISTRADOR'')') ? '/admin/dashboard' : '/secretario/dashboard'}"
+            <a th:href="${#authorization.expression('hasRole(''ADMINISTRADOR'')') ? '/admin/dashboard' :
+                    (#authorization.expression('hasRole(''BARBERO'')') ? '/barbero/panel' : '/secretario/dashboard')}"
                 class="nav-link" th:classappend="${activePage == 'dashboard' ? ' active' : ''}">
                 <i class="fa-solid fa-house"></i> Inicio
             </a>
@@ -48,6 +49,10 @@
                 <a href="/admin/servicios" class="nav-link"
                     th:classappend="${activePage == 'servicios' ? ' active' : ''}">
                     <i class="fa-solid fa-list-check"></i> Planes y Servicios
+                </a>
+                <a href="/admin/cortes" class="nav-link"
+                    th:classappend="${activePage == 'cortes' ? ' active' : ''}">
+                    <i class="fa-solid fa-scissors"></i> Catálogo de Cortes
                 </a>
                 <a href="/admin/productos" class="nav-link"
                     th:classappend="${activePage == 'productos' ? ' active' : ''}">
@@ -134,6 +139,16 @@
                 <a href="/secretario/ventas-productos/historial" class="nav-link"
                     th:classappend="${activePage == 'historial_ventas_productos' ? ' active' : ''}">
                     <i class="fa-solid fa-clock-rotate-left"></i> Historial Ventas Productos
+                </a>
+            </th:block>
+
+            <!-- MÓDULOS BARBERO -->
+            <th:block th:if="${#authorization.expression('hasRole(''BARBERO'')')}">
+                <a href="/barbero/panel#reservas" class="nav-link">
+                    <i class="fa-solid fa-calendar-day"></i> Reservas de Hoy
+                </a>
+                <a href="/barbero/panel#ganancias" class="nav-link">
+                    <i class="fa-solid fa-sack-dollar"></i> Mis Ganancias
                 </a>
             </th:block>
 

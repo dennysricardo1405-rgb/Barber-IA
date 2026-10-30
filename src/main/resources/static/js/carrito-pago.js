@@ -69,8 +69,9 @@ async function cargarPaginaPago() {
 
                 listaEl.innerHTML += `
                     <div class="item-pedido">
-                        <img src="${item.imagen || 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}"
-                             alt="${item.nombre}" onerror="this.src='https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'">
+                        ${item.imagen
+                            ? `<img src="${item.imagen}" alt="${item.nombre}">`
+                            : '<div class="item-sin-foto"><i class="fa-solid fa-box-open"></i></div>'}
                         <div>
                             <div class="item-pedido-nombre">${item.nombre}</div>
                             <div class="item-pedido-meta">

@@ -9,5 +9,6 @@ public record ResultadoAsesor(
         long latenciaMs,
         String fotoUrl,
         String previewUrl,
+        String fotoCorteUrl,
         RecomendacionCorte recomendacion) {
 }

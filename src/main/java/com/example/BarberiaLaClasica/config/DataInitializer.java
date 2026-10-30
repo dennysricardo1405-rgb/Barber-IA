@@ -63,6 +63,7 @@ public class DataInitializer implements CommandLineRunner {
         // ID)
         Perfil adminPerfil = crearPerfilSiNoExiste("Administrador", "Acceso total");
         crearPerfilSiNoExiste("Secretario", "Gestión de citas y clientes");
+        crearPerfilSiNoExiste("Barbero", "Panel del barbero: su silla, reservas y ganancias");
 
         // 3. Asignar todos los permisos al admin si no tiene ninguno
         if (adminPerfil.getPermisos() == null || adminPerfil.getPermisos().isEmpty()) {

@@ -2,6 +2,10 @@
 {{catalogo}}
 </catalogo>
 
+<cortes_con_foto>
+{{cortes}}
+</cortes_con_foto>
+
 <ejemplo>
 Entrada: rostro más largo que ancho, frente amplia, mandíbula suave, cabello lacio y abundante.
 Salida:

@@ -7,11 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BarberoRepository extends JpaRepository<Barbero, Long> {
 
     List<Barbero> findByEstado(int estado);
+
+    Optional<Barbero> findByUsuarioEmail(String email);
 
     // Métodos para paginación
     Page<Barbero> findAll(Pageable pageable);
