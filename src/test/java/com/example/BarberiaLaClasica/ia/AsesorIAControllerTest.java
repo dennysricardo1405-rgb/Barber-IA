@@ -214,4 +214,29 @@ class AsesorIAControllerTest {
     void paginaDelCatalogoDeCortes() throws Exception {
         mvc.perform(get("/admin/cortes")).andExpect(status().isOk());
     }
+
+    @Test
+    void conSesionDeClienteSeApruebaConSuPropioDni() throws Exception {
+        when(gemini.configurado()).thenReturn(false);
+        Cliente c = new Cliente();
+        c.setDni("70000004");
+        c.setNombres("Ana");
+        c.setApellidos("Soto");
+        c.setCorreo("ana.ia@test.pe");
+        c = clienteRepository.save(c);
+        var sesion = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                .user("ana.ia@test.pe").roles("CLIENTE");
+
+        mvc.perform(get("/asesor-ia").with(sesion))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("value=\"70000004\"")));
+
+        String json = mvc.perform(multipart("/api/ia/asesor").file(selfie).with(sesion))
+                .andReturn().getResponse().getContentAsString();
+        Long id = com.jayway.jsonpath.JsonPath.parse(json).read("$.id", Long.class);
+        // aunque el formulario mande otro DNI, queda a nombre de la cuenta con sesión
+        mvc.perform(post("/api/ia/asesor/" + id + "/aprobar").param("dni", "70000001").with(sesion))
+                .andExpect(status().isOk());
+        assertThat(recomendacionRepository.findById(id).orElseThrow().getDni()).isEqualTo("70000004");
+    }
 }

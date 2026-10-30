@@ -91,7 +91,10 @@
                                 <label class="form-label small text-secondary" for="dni">¿Te gusta? Apruébalo con tu
                                     DNI y tu barbero lo verá al atenderte</label>
                                 <input type="text" id="dni" class="form-control bg-dark text-light" maxlength="8"
-                                    pattern="\d{8}" placeholder="DNI (8 dígitos)" required>
+                                    pattern="\d{8}" placeholder="DNI (8 dígitos)" required
+                                    th:value="${dniCliente}" th:readonly="${dniCliente != null}">
+                                <small th:if="${dniCliente != null}" class="text-secondary">Se usa el DNI de tu
+                                    cuenta, así tu barbero lo ve en tu reserva.</small>
                             </div>
                             <div class="col-sm-5">
                                 <button class="btn btn-gold w-100" type="submit"><i
