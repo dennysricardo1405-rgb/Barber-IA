@@ -1,6 +1,7 @@
 package com.example.BarberiaLaClasica.controller;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.BarberiaLaClasica.dto.ResultadoAsesor;
+import com.example.BarberiaLaClasica.model.Cliente;
 import com.example.BarberiaLaClasica.model.RecomendacionIA;
+import com.example.BarberiaLaClasica.repository.ClienteRepository;
 import com.example.BarberiaLaClasica.service.AsesorImagenService;
 import com.example.BarberiaLaClasica.service.GeminiClient;
 
@@ -28,15 +31,20 @@ public class AsesorIAController {
 
     private final AsesorImagenService asesorService;
     private final GeminiClient gemini;
+    private final ClienteRepository clienteRepository;
 
-    public AsesorIAController(AsesorImagenService asesorService, GeminiClient gemini) {
+    public AsesorIAController(AsesorImagenService asesorService, GeminiClient gemini,
+            ClienteRepository clienteRepository) {
         this.asesorService = asesorService;
         this.gemini = gemini;
+        this.clienteRepository = clienteRepository;
     }
 
     @GetMapping("/asesor-ia")
-    public String pagina(org.springframework.ui.Model model) {
+    public String pagina(org.springframework.ui.Model model, Principal principal) {
         model.addAttribute("modoDemo", !gemini.configurado());
+        // si el cliente inició sesión, el corte se aprueba con su propio DNI (el mismo de sus reservas)
+        model.addAttribute("dniCliente", dniDe(principal));
         return "asesor-ia";
     }
 
@@ -50,8 +58,10 @@ public class AsesorIAController {
 
     @PostMapping("/api/ia/asesor/{id}/aprobar")
     @ResponseBody
-    public Map<String, Object> aprobar(@PathVariable Long id, @RequestParam("dni") String dni) {
-        RecomendacionIA rec = asesorService.aprobar(id, dni);
+    public Map<String, Object> aprobar(@PathVariable Long id,
+            @RequestParam(value = "dni", required = false) String dni, Principal principal) {
+        String dniCuenta = dniDe(principal);
+        RecomendacionIA rec = asesorService.aprobar(id, dniCuenta != null ? dniCuenta : dni);
         return Map.of("ok", true, "id", rec.getId(), "corte", String.valueOf(rec.getCorteRecomendado()));
     }
 
@@ -60,6 +70,14 @@ public class AsesorIAController {
     @ResponseBody
     public ResponseEntity<RecomendacionIA> ultima(@PathVariable Long clienteId) {
         return ResponseEntity.of(asesorService.ultimaAprobada(clienteId));
+    }
+
+    private String dniDe(Principal principal) {
+        if (principal == null) return null;
+        return clienteRepository.findByCorreo(principal.getName())
+                .map(Cliente::getDni)
+                .filter(d -> d != null && d.matches("\\d{8}"))
+                .orElse(null);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
