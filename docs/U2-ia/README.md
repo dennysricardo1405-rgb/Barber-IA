@@ -9,8 +9,11 @@
    mantenimiento, el corte recomendado y el servicio del catálogo de la barbería.
 3. Con el corte recomendado, un segundo modelo (`gemini-3.1-flash-lite-image`) **edita la foto** y genera la
    vista previa del cliente con su nuevo corte.
-4. El cliente **aprueba con su DNI**. En recepción, la tarjeta de la silla con reserva muestra
-   **"Ver corte IA"** para que el barbero vea la imagen aprobada.
+4. Como la edición de imagen no siempre está disponible (no tiene cupo gratis), el asesor también muestra la
+   **foto de referencia del corte** que el administrador sube en `/admin/cortes` (Catálogo de cortes). Los
+   nombres del catálogo van en el prompt para que la IA recomiende cortes que tienen foto.
+5. El cliente **aprueba con su DNI**. En recepción, la tarjeta de la silla (con reserva o atendiendo) muestra
+   la foto del cliente, la foto del corte y los datos del corte. Si el cliente no usó el asesor no se muestra nada.
 
 ```mermaid
 sequenceDiagram

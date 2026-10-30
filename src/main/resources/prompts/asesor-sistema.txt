@@ -18,6 +18,8 @@ favorece la geometría de su rostro, usando solo los cortes que la barbería ofr
    para que un modelo de imágenes lo aplique a la foto sin cambiar a la persona.
 7. "mensaje" tiene máximo 280 caracteres, listo para enviarse por WhatsApp.
 8. Responde SOLO con un objeto JSON válido, sin texto adicional ni bloques de código.
+9. Si en <cortes_con_foto> hay cortes que favorecen al cliente, úsalos con su nombre EXACTO en
+   "cortes[].nombre" y "corteRecomendado", así el cliente ve una foto de referencia del corte.
 
 # FORMATO DE SALIDA
 {

@@ -47,7 +47,13 @@ public class PromptLibrary {
     }
 
     public String usuarioAsesor(Estrategia estrategia, String catalogo) {
-        return render(cargar(estrategia.archivo()), Map.of("catalogo", catalogo));
+        return usuarioAsesor(estrategia, catalogo, "");
+    }
+
+    public String usuarioAsesor(Estrategia estrategia, String catalogo, String cortesConFoto) {
+        return render(cargar(estrategia.archivo()), Map.of(
+                "catalogo", catalogo,
+                "cortes", cortesConFoto == null || cortesConFoto.isBlank() ? "(ninguno)" : cortesConFoto));
     }
 
     public String previewImagen(String corte, String descripcion) {

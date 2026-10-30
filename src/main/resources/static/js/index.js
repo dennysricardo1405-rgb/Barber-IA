@@ -176,10 +176,7 @@ function renderCarrito() {
 
     body.innerHTML = carrito.map((item, idx) => `
         <div class="carrito-item">
-            <img class="carrito-item-img"
-                 src="${item.imagen || 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}"
-                 alt="${item.nombre}"
-                 onerror="this.src='https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'">
+            ${item.imagen ? `<img class="carrito-item-img" src="${item.imagen}" alt="${item.nombre}">` : ''}
             <div class="carrito-item-info">
                 <div class="carrito-item-nombre" title="${item.nombre}">${item.nombre}</div>
                 <div class="carrito-item-precio">S/ ${item.precio.toFixed(2)} c/u</div>

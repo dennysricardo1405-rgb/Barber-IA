@@ -27,6 +27,8 @@ public class RecomendacionCorte {
         private String nombre;
         private String motivo;
         private Integer mantenimientoSemanas;
+        // foto del catálogo de cortes; la pone el sistema, no la IA
+        private String fotoReferencia;
     }
 
     /** Semanas de mantenimiento del corte recomendado (insumo del recordatorio predictivo de la U4). */

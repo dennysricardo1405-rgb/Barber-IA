@@ -42,7 +42,8 @@
 
                     <div id="listaItems">
                         <div th:each="item : ${items}" class="item-pedido">
-                            <img th:src="${item.imagen != null and !item.imagen.isEmpty() ? item.imagen : 'https://thebarbercompany.pe/wp-content/uploads/2019/04/serv4.webp'}" th:alt="${item.nombre}">
+                            <img th:if="${item.imagen != null and !item.imagen.isEmpty()}" th:src="${item.imagen}" th:alt="${item.nombre}">
+                            <div th:unless="${item.imagen != null and !item.imagen.isEmpty()}" class="item-sin-foto"><i class="fa-solid fa-box-open"></i></div>
                             <div>
                                 <div class="item-pedido-nombre" th:text="${item.nombre}"></div>
                                 <div class="item-pedido-meta">

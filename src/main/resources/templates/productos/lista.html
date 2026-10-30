@@ -56,6 +56,10 @@
                 <i class="fa-solid fa-circle-check me-2"></i> ¡Producto guardado correctamente!
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+            <div th:if="${param.errorImagen}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-circle-xmark me-2"></i> No se pudo guardar la imagen. Usa JPG, PNG, WEBP o GIF.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <div th:if="${param.estadoCambiado}" class="alert alert-info alert-dismissible fade show" role="alert">
                 <i class="fa-solid fa-circle-info me-2"></i> Estado del producto actualizado.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

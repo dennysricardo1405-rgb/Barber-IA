@@ -59,6 +59,11 @@
         document.getElementById('imgPreview').src = r.previewUrl || r.fotoUrl;
         document.getElementById('leyendaPreview').textContent =
             r.previewUrl && r.previewUrl !== r.fotoUrl ? 'Vista previa generada por IA' : 'Tu foto';
+        // la edición de imagen no siempre está disponible: se muestra una foto real del corte del catálogo
+        const imgReferencia = document.getElementById('imgReferencia');
+        imgReferencia.src = r.fotoCorteUrl || '';
+        document.getElementById('leyendaReferencia').textContent = 'Así se ve un ' + (rec.corteRecomendado || 'corte');
+        mostrar('bloqueReferencia', !!r.fotoCorteUrl);
         document.getElementById('badgeForma').textContent =
             rec.rostroDetectado ? 'Rostro ' + (rec.formaRostro || '').toLowerCase() : 'Rostro no detectado';
         document.getElementById('corteRecomendado').textContent = rec.corteRecomendado || 'Sin recomendación';
@@ -68,13 +73,22 @@
         lista.innerHTML = '';
         (rec.cortes || []).forEach((c, i) => {
             const li = document.createElement('li');
-            li.className = 'mb-2';
+            li.className = 'mb-2 d-flex gap-2 align-items-start';
+            const texto = document.createElement('div');
+            if (c.fotoReferencia) {
+                const mini = document.createElement('img');
+                mini.src = c.fotoReferencia;
+                mini.alt = c.nombre;
+                mini.className = 'mini-corte';
+                li.appendChild(mini);
+            }
             const titulo = document.createElement('strong');
             titulo.textContent = (i + 1) + '. ' + c.nombre;
             const detalle = document.createElement('div');
             detalle.className = 'text-secondary';
             detalle.textContent = c.motivo + (c.mantenimientoSemanas ? ' · Retoque cada ' + c.mantenimientoSemanas + ' semanas' : '');
-            li.append(titulo, detalle);
+            texto.append(titulo, detalle);
+            li.appendChild(texto);
             lista.appendChild(li);
         });
         document.getElementById('meta').textContent =

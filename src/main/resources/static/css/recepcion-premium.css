@@ -102,3 +102,46 @@
     border-radius: 20px;
     font-size: 0.75rem;
 }
+.img-barbero-vacia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 2.2rem;
+}
+
+/* U2: corte aprobado con el asesor IA */
+.corte-ia {
+    background: rgba(201, 168, 76, 0.08);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.corte-ia-fotos {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.corte-ia-foto {
+    flex: 1;
+    max-width: 50%;
+    text-decoration: none;
+    text-align: center;
+}
+
+.corte-ia-foto img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+}
+
+.corte-ia-foto span {
+    display: block;
+    font-size: 0.7rem;
+    color: #aaa;
+    margin-top: 2px;
+}
