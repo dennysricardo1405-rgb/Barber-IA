@@ -25,10 +25,16 @@
     <div class="main-content pt-4">
         <div class="container-fluid">
 
-            <div class="mb-4">
-                <h2 class="fw-bold m-0 text-primary">Automatización: agente de citas</h2>
-                <p class="text-muted m-0 small">Bot de Telegram con n8n y Gemini. Cada conversación queda registrada
-                    y se compara con el agendamiento manual cronometrado.</p>
+            <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                    <h2 class="fw-bold m-0 text-primary">Automatización: agente de citas</h2>
+                    <p class="text-muted m-0 small">Bot de Telegram con n8n y Gemini. Cada conversación queda registrada
+                        y se compara con el agendamiento manual cronometrado.</p>
+                </div>
+                <form method="post" th:action="@{/admin/automatizacion/reiniciar}"
+                      onsubmit="return confirm('Se borrarán las conversaciones y errores registrados del bot (las citas y las mediciones manuales se mantienen). ¿Continuar?');">
+                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-eraser me-1"></i>Limpiar bitácora del bot</button>
+                </form>
             </div>
 
             <div th:if="${ok}" class="alert alert-success py-2" th:text="${ok}"></div>

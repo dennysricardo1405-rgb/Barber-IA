@@ -77,7 +77,9 @@ puede hacerse pasar por otro cliente.
 | Llamada sin clave o con clave falsa | 401 sin datos | Backend (`X-BOT-KEY`) |
 
 Cada error controlado responde `{"ok": false, "codigo", "mensaje"}` para que el agente lo explique con sus
-palabras, y queda en la tabla `bot_eventos`.
+palabras, y queda en la tabla `bot_eventos`. Para que todo quede registrado, el agente tiene la regla de no
+decidir por su cuenta si un DNI, una fecha o una hora son válidos: siempre los pasa al backend (la hora que pidió
+el cliente va en `ver_horarios`, que la valida antes de ofrecer otras).
 
 ## Evidencia de eficiencia
 
@@ -97,7 +99,8 @@ El panel **Administración > Automatización** (`/admin/automatizacion`) compara
 | Fallos no controlados | eventos `FALLO` (la meta es cero) |
 | Citas fuera del horario del local | conversaciones que terminaron en cita fuera de 10:00 a 22:00 |
 
-Los mismos datos salen en JSON en `GET /api/bot/metricas`.
+Los mismos datos salen en JSON en `GET /api/bot/metricas`. Antes de una medición o de la demo, el botón
+**Limpiar bitácora del bot** del panel borra conversaciones y errores registrados (no toca citas ni la línea base).
 
 ## Cómo se ejecuta (Windows / PowerShell)
 
@@ -134,9 +137,12 @@ funciona igual.
   herramientas, usan el flujo de errores y no guardan claves.
 - `n8n/pruebas/conversaciones.py`: conversaciones reales contra el agente (sin Telegram, por el webhook de prueba)
   con casos exitosos, DNI inválido, fecha pasada, fuera de horario, horario ocupado y abandono. Al final imprime
-  los indicadores. Consume cuota de Gemini (unas 20 llamadas por ronda):
+  los indicadores. En los casos de error el cliente corrige el dato y termina reservando, así que cada ronda deja
+  5 citas (para días distintos) y un abandono. Consume cuota de Gemini (unas 30 llamadas por ronda). No hace falta
+  tener Python instalado; se corre en un contenedor y la clave se lee del `.env` sin mostrarla:
   ```powershell
-  python n8n/pruebas/conversaciones.py --clave TU_BOT_API_KEY --rondas 2
+  $k = ((Select-String '^BOT_API_KEY=' .env).Line -split '=', 2)[1]
+  docker run --rm --network barber-ia_default -v "${PWD}/n8n/pruebas:/p" python:3.12-alpine python /p/conversaciones.py --n8n http://n8n:5678 --api http://app:8080 --clave $k --rondas 3
   ```
 
 ## Casos para la demo

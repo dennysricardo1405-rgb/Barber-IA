@@ -68,4 +68,13 @@ public class AutomatizacionController {
         ra.addFlashAttribute("ok", "Medición eliminada.");
         return "redirect:/admin/automatizacion";
     }
+
+    /** Borra la bitácora del bot (conversaciones y eventos) para medir desde cero. No toca citas ni la línea base. */
+    @PostMapping("/admin/automatizacion/reiniciar")
+    public String reiniciar(RedirectAttributes ra) {
+        eventos.deleteAllInBatch();
+        conversaciones.deleteAllInBatch();
+        ra.addFlashAttribute("ok", "Bitácora del bot limpiada. Los indicadores empiezan desde cero.");
+        return "redirect:/admin/automatizacion";
+    }
 }

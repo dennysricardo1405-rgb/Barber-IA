@@ -161,7 +161,7 @@ public class BotAgendaService {
             r.put("citasActivas", citasActivas(cl));
         } else {
             r.put("existe", false);
-            consultarReniec(dni).ifPresent(n -> {
+            consultarReniec(chatId, dni).ifPresent(n -> {
                 r.put("nombresReniec", n[0]);
                 r.put("apellidosReniec", n[1]);
             });
@@ -186,7 +186,7 @@ public class BotAgendaService {
         String n = limpiar(nombres);
         String a = limpiar(apellidos);
         if (n.isEmpty() || a.isEmpty()) {
-            Optional<String[]> reniec = consultarReniec(dni);
+            Optional<String[]> reniec = consultarReniec(chatId, dni);
             if (reniec.isPresent()) {
                 n = n.isEmpty() ? reniec.get()[0] : n;
                 a = a.isEmpty() ? reniec.get()[1] : a;
@@ -242,11 +242,25 @@ public class BotAgendaService {
 
     @Transactional
     public Map<String, Object> horarios(String chatId, Long barberoId, String fechaTexto, Long servicioId) {
+        return horarios(chatId, barberoId, fechaTexto, servicioId, null);
+    }
+
+    /** Si viene la hora que pidió el cliente, también se valida (horario de atención, hora pasada, ocupada). */
+    public Map<String, Object> horarios(String chatId, Long barberoId, String fechaTexto, Long servicioId,
+            String horaTexto) {
         BotConversacion conv = conversacionAbierta(chatId, null);
         conversaciones.save(conv);
         Barbero barbero = barberoActivo(barberoId);
         LocalDate fecha = validarFecha(fechaTexto, barbero);
         int duracion = servicioId == null ? intervaloMin : servicioActivo(servicioId).getDuracionMinutos();
+
+        if (horaTexto != null && !horaTexto.isBlank()) {
+            LocalTime hora = validarHora(horaTexto, fecha, duracion);
+            if (citas.existeConflictoHorario(barbero.getId(), fecha, hora, hora.plusMinutes(duracion))) {
+                throw new BotException("HORARIO_OCUPADO", "Esa hora ya está tomada con ese barbero.",
+                        Map.of("alternativas", alternativas(barbero.getId(), fecha, duracion, hora)));
+            }
+        }
 
         List<String> libres = horasLibres(barbero.getId(), fecha, duracion);
         Map<String, Object> r = ok();
@@ -485,8 +499,15 @@ public class BotAgendaService {
         return String.format("LC-%05d", c.getId());
     }
 
-    /** Devuelve {nombres, apellidos} si la API de DNI responde. Si falla, el bot pide el nombre al cliente. */
-    private Optional<String[]> consultarReniec(String dni) {
+    /**
+     * Devuelve {nombres, apellidos} si la API de DNI responde. Si falla, el bot pide el nombre al cliente.
+     * Las conversaciones del script de pruebas (chat "prueba-...") usan DNIs al azar, así que no se consultan:
+     * podrían devolver los datos de una persona real.
+     */
+    private Optional<String[]> consultarReniec(String chatId, String dni) {
+        if (chatId != null && chatId.startsWith("prueba-")) {
+            return Optional.empty();
+        }
         try {
             JsonNode raiz = json.readTree(dniService.consultarDni(dni));
             JsonNode d = raiz.path("datos");
