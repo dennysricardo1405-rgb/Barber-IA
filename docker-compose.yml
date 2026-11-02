@@ -63,6 +63,8 @@ services:
       MQTT_BROKER_URL: ${MQTT_BROKER_URL:-tcp://mosquitto:1883}
       MQTT_TOPIC_PREFIX: ${MQTT_TOPIC_PREFIX:-laclasica}
       IOT_HTTP_TOKEN: ${IOT_HTTP_TOKEN:-}
+      # U4 - Agente de citas (n8n)
+      BOT_API_KEY: ${BOT_API_KEY:-}
     ports:
       - "8080:8080"
     volumes:
@@ -98,7 +100,48 @@ services:
       - "8501:8501"
     profiles: ["ia"]
 
+  # U4 - Automatización: agente de citas por Telegram (n8n + Gemini)
+  n8n:
+    image: n8nio/n8n:2.44.4
+    container_name: barberia-n8n
+    restart: unless-stopped
+    depends_on:
+      - app
+      - tunel
+    entrypoint: ["tini", "--", "/bin/sh", "/opt/barberia/iniciar.sh"]
+    environment:
+      TZ: America/Lima
+      GENERIC_TIMEZONE: America/Lima
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-}
+      N8N_PUBLIC_URL: ${N8N_PUBLIC_URL:-}
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      BARBERIA_API_URL: http://app:8080
+      BOT_API_KEY: ${BOT_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ADMIN_CHAT_ID: ${TELEGRAM_ADMIN_CHAT_ID:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.5-flash-lite}
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/iniciar.sh:/opt/barberia/iniciar.sh:ro
+      - ./n8n/credenciales.js:/opt/barberia/credenciales.js:ro
+      - ./n8n/workflows:/opt/barberia/workflows:ro
+    profiles: ["bot"]
+
+  # U4 - Túnel HTTPS gratuito para que Telegram llegue al webhook de n8n (no necesita cuenta)
+  tunel:
+    image: cloudflare/cloudflared:2026.10.1
+    container_name: barberia-tunel
+    restart: unless-stopped
+    command: ["tunnel", "--metrics", "0.0.0.0:2000", "--url", "http://n8n:5678"]
+    profiles: ["bot"]
+
 volumes:
   mysql_data:
   mosquitto_data:
   uploads_data:
+  n8n_data:

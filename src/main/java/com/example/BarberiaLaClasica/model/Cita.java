@@ -66,6 +66,10 @@ public class Cita {
     @Column(name = "reprogramada", nullable = false)
     private boolean reprogramada = false;
 
+    // U4: por dónde llegó la reserva (null = web o recepción, "BOT" = agente de Telegram)
+    @Column(name = "origen", length = 15)
+    private String origen;
+
     public Cita() {
     }
 }

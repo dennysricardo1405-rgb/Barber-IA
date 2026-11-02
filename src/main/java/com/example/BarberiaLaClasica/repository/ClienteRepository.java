@@ -31,4 +31,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     // MODIFICADO: Ahora soporta paginación devolviendo un Page en lugar de un List
     Page<Cliente> findByDniContainingOrNombresContainingIgnoreCaseOrApellidosContainingIgnoreCase(
             String dni, String nombres, String apellidos, Pageable pageable);
+
+    // U4: cliente asociado a un chat de Telegram
+    Optional<Cliente> findFirstByTelegramChatId(String telegramChatId);
 }

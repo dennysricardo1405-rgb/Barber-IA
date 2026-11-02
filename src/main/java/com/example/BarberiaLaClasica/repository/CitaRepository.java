@@ -114,4 +114,7 @@ List<Cita> findByEstadoAndFechaBetween(
 
     @Query("SELECT COUNT(c) FROM Cita c WHERE c.cliente.id = :clienteId AND c.servicio.id = :servicioId AND c.estado IN (1, 2, 3)")
     long contarCitasPorClienteYServicio(@Param("clienteId") Long clienteId, @Param("servicioId") Long servicioId);
+
+    // U4: citas pendientes o en silla de un cliente (para que el bot se las muestre)
+    List<Cita> findByClienteIdAndEstadoInOrderByFechaAscHoraInicioAsc(Long clienteId, List<Integer> estados);
 }

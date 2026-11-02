@@ -9,7 +9,7 @@ ventas, inventario y reportes, más los componentes de tecnologías emergentes q
 | U1 | DevOps y CI/CD: Docker, docker compose, pipeline con pruebas y despliegue simulado | `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci-cd.yml`, `src/test` | [docs/U1-devops](docs/U1-devops/README.md) |
 | U2 | IA y prompt engineering: asesor de imagen con Google Gemini | `src/main/resources/prompts`, `AsesorImagenService`, `/asesor-ia`, `ia/streamlit` | [docs/U2-ia](docs/U2-ia/README.md) |
 | U3 | IoT: sensores de ocupación de sillas y ambiente, MQTT y dashboard en tiempo real | `iot/`, `MqttIngestService`, `MonitoreoIotService`, `/monitoreo` | [docs/U3-iot](docs/U3-iot/README.md) |
-| U4 | RPA / No-Code (n8n + WhatsApp) | pendiente (semana 13) | |
+| U4 | Automatización No-Code: agente de citas por Telegram con n8n y Gemini | `n8n/`, `BotAgendaService`, `/api/bot`, `/admin/automatizacion` | [docs/U4-automatizacion](docs/U4-automatizacion/README.md) |
 | U5 | AR / VR | pendiente (semana 16) | |
 
 ## Ejecutar con Docker (recomendado)
@@ -26,6 +26,8 @@ docker compose --profile iot up -d --build
 | Dashboard IoT | http://localhost:8080/monitoreo (administrador o secretario) |
 | Broker MQTT | `localhost:1883` |
 | Laboratorio de prompts (Streamlit) | `docker compose --profile ia up -d` y luego http://localhost:8501 |
+| Agente de citas (n8n) | `docker compose --profile iot --profile bot up -d --build` y luego http://localhost:5678 |
+| Panel de automatización | http://localhost:8080/admin/automatizacion (administrador) |
 
 ### Datos de demostración
 
@@ -52,5 +54,5 @@ Si no hay broker, la aplicación arranca igual y reintenta la conexión MQTT en 
 ## Pruebas
 
 ```bash
-./mvnw verify      # 29 pruebas con H2 en memoria + reporte de cobertura en target/site/jacoco
+./mvnw verify      # 56 pruebas con H2 en memoria + reporte de cobertura en target/site/jacoco
 ```

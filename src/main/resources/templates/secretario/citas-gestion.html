@@ -89,7 +89,9 @@
                                             class="comprobante-thumb"
                                             th:onclick="'verComprobante(\'' + @{/uploads/comprobantes/{f}(f=${c.comprobantePago})} + '\')'"
                                             alt="Comprobante Yape">
-                                        <span th:if="${c.comprobantePago == null}"
+                                        <span th:if="${c.comprobantePago == null and c.origen == 'BOT'}"
+                                            class="badge bg-info text-dark">Telegram · paga en local</span>
+                                        <span th:if="${c.comprobantePago == null and c.origen != 'BOT'}"
                                             class="small text-muted fst-italic">Sin imagen</span>
                                     </td>
                                     <td class="text-center">
