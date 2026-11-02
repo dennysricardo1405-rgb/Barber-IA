@@ -36,6 +36,7 @@ import com.example.BarberiaLaClasica.model.Cita;
 import com.example.BarberiaLaClasica.model.Cliente;
 import com.example.BarberiaLaClasica.model.Servicio;
 import com.example.BarberiaLaClasica.repository.BarberoRepository;
+import com.example.BarberiaLaClasica.repository.BotConversacionRepository;
 import com.example.BarberiaLaClasica.repository.BotEventoRepository;
 import com.example.BarberiaLaClasica.repository.CitaRepository;
 import com.example.BarberiaLaClasica.repository.ClienteRepository;
@@ -65,6 +66,8 @@ class BotApiTest {
     private BotEventoRepository eventoRepository;
     @Autowired
     private LineaBaseManualRepository lineaBaseRepository;
+    @Autowired
+    private BotConversacionRepository conversacionRepository;
 
     @MockitoBean
     private DniService dniService;
@@ -166,6 +169,27 @@ class BotApiTest {
     }
 
     @Test
+    void verHorariosValidaLaHoraQuePidioElCliente() throws Exception {
+        Cliente otro = nuevoCliente(dniNuevo());
+        mvc.perform(post("/api/bot/citas").header("X-BOT-KEY", CLAVE).header("X-CHAT-ID", "otro-" + chat)
+                .contentType(MediaType.APPLICATION_JSON).content(cita(otro.getDni(), "16:00", true)))
+                .andExpect(jsonPath("$.ok").value(true));
+
+        long antes = eventoRepository.countByTipo(BotEvento.ERROR_CONTROLADO);
+        bot(horarios(manana, "16:00"))
+                .andExpect(jsonPath("$.codigo").value("HORARIO_OCUPADO"))
+                .andExpect(jsonPath("$.alternativas", hasItem("15:30")));
+        bot(horarios(manana, "23:00"))
+                .andExpect(jsonPath("$.codigo").value("FUERA_DE_HORARIO"));
+        bot(horarios(manana, "17:00"))
+                .andExpect(jsonPath("$.ok").value(true))
+                .andExpect(jsonPath("$.horasLibres", hasItem("17:00")));
+        bot(horarios(manana, ""))
+                .andExpect(jsonPath("$.ok").value(true));
+        assertThat(eventoRepository.countByTipo(BotEvento.ERROR_CONTROLADO)).isEqualTo(antes + 2);
+    }
+
+    @Test
     void validaFechasHorasYDiaLibre() throws Exception {
         String ayer = LocalDate.now(ZoneId.of("America/Lima")).minusDays(1).toString();
         bot(get("/api/bot/horarios").param("barberoId", "" + barbero.getId()).param("fecha", ayer))
@@ -243,11 +267,32 @@ class BotApiTest {
                 .andExpect(content().string(Matchers.containsString("Antes y después")));
     }
 
+    @Test
+    @WithMockUser(roles = "ADMINISTRADOR")
+    void limpiarBitacoraNoTocaLaLineaBase() throws Exception {
+        bot(post("/api/bot/mensajes").content("{\"chatId\":\"" + chat + "\",\"canal\":\"telegram\"}"));
+        bot(get("/api/bot/clientes/12"));
+        long base = lineaBaseRepository.count();
+        assertThat(conversacionRepository.count()).isPositive();
+
+        mvc.perform(post("/admin/automatizacion/reiniciar").with(csrf()))
+                .andExpect(status().is3xxRedirection());
+
+        assertThat(conversacionRepository.count()).isZero();
+        assertThat(eventoRepository.count()).isZero();
+        assertThat(lineaBaseRepository.count()).isEqualTo(base);
+    }
+
     // ── Apoyo ───────────────────────────────────────────────────────────────
 
     private ResultActions bot(MockHttpServletRequestBuilder req) throws Exception {
         return mvc.perform(req.header("X-BOT-KEY", CLAVE).header("X-CHAT-ID", chat)
                 .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    private MockHttpServletRequestBuilder horarios(String fecha, String hora) {
+        return get("/api/bot/horarios").param("barberoId", "" + barbero.getId()).param("fecha", fecha)
+                .param("servicioId", "" + servicio.getId()).param("hora", hora);
     }
 
     private String cita(String dni, String hora, boolean confirmado) {

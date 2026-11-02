@@ -80,8 +80,8 @@ public class BotApiController {
     public ResponseEntity<Map<String, Object>> horarios(@RequestHeader(value = "X-BOT-KEY", required = false) String key,
             @RequestHeader(value = "X-CHAT-ID", required = false) String chatId,
             @RequestParam(required = false) Long barberoId, @RequestParam(required = false) String fecha,
-            @RequestParam(required = false) Long servicioId) {
-        return ejecutar(key, chatId, () -> agenda.horarios(chatId, barberoId, fecha, servicioId));
+            @RequestParam(required = false) Long servicioId, @RequestParam(required = false) String hora) {
+        return ejecutar(key, chatId, () -> agenda.horarios(chatId, barberoId, fecha, servicioId, hora));
     }
 
     @PostMapping("/citas")

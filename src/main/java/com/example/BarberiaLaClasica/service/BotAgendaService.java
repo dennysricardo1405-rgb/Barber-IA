@@ -242,11 +242,25 @@ public class BotAgendaService {
 
     @Transactional
     public Map<String, Object> horarios(String chatId, Long barberoId, String fechaTexto, Long servicioId) {
+        return horarios(chatId, barberoId, fechaTexto, servicioId, null);
+    }
+
+    /** Si viene la hora que pidió el cliente, también se valida (horario de atención, hora pasada, ocupada). */
+    public Map<String, Object> horarios(String chatId, Long barberoId, String fechaTexto, Long servicioId,
+            String horaTexto) {
         BotConversacion conv = conversacionAbierta(chatId, null);
         conversaciones.save(conv);
         Barbero barbero = barberoActivo(barberoId);
         LocalDate fecha = validarFecha(fechaTexto, barbero);
         int duracion = servicioId == null ? intervaloMin : servicioActivo(servicioId).getDuracionMinutos();
+
+        if (horaTexto != null && !horaTexto.isBlank()) {
+            LocalTime hora = validarHora(horaTexto, fecha, duracion);
+            if (citas.existeConflictoHorario(barbero.getId(), fecha, hora, hora.plusMinutes(duracion))) {
+                throw new BotException("HORARIO_OCUPADO", "Esa hora ya está tomada con ese barbero.",
+                        Map.of("alternativas", alternativas(barbero.getId(), fecha, duracion, hora)));
+            }
+        }
 
         List<String> libres = horasLibres(barbero.getId(), fecha, duracion);
         Map<String, Object> r = ok();
