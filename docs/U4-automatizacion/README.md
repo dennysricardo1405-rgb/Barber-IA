@@ -138,7 +138,7 @@ funciona igual.
 - `n8n/pruebas/conversaciones.py`: conversaciones reales contra el agente (sin Telegram, por el webhook de prueba)
   con casos exitosos, DNI inválido, fecha pasada, fuera de horario, horario ocupado y abandono. Al final imprime
   los indicadores. En los casos de error el cliente corrige el dato y termina reservando, así que cada ronda deja
-  5 citas (para días distintos) y un abandono. Consume cuota de Gemini (unas 30 llamadas por ronda). No hace falta
+  5 citas (para días distintos) y un abandono. Consume cuota de Gemini (unas 30 llamadas por ronda); deja 8 s entre mensajes y, si Gemini responde que está ocupado, espera y repite el mensaje. No hace falta
   tener Python instalado; se corre en un contenedor y la clave se lee del `.env` sin mostrarla:
   ```powershell
   $k = ((Select-String '^BOT_API_KEY=' .env).Line -split '=', 2)[1]

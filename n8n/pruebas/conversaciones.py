@@ -68,9 +68,17 @@ def conversar(args, conv, mensajes):
             break
         print(f"  Cliente: {texto}", flush=True)
         try:
-            r = llamar(args.n8n + "/webhook/bot-prueba", args.clave, {"conversacion": conv, "texto": texto})
-            respuestas.append(r.get("respuesta") or "")
-            print(f"  Bot:     {respuestas[-1]}", flush=True)
+            for intento in range(3):
+                r = llamar(args.n8n + "/webhook/bot-prueba", args.clave, {"conversacion": conv, "texto": texto})
+                respuesta = r.get("respuesta") or ""
+                # La capa gratuita de Gemini limita las consultas por minuto: se espera y se repite el mensaje
+                if "mucha demanda" not in respuesta or intento == 2:
+                    break
+                print(f"  (Gemini ocupado, reintento en {args.espera} s)", flush=True)
+                time.sleep(args.espera)
+            respuestas.append(respuesta)
+            print(f"  Bot:     {respuesta}", flush=True)
+            time.sleep(args.pausa)
         except Exception as e:  # noqa: BLE001 - se informa y se sigue con el siguiente escenario
             print(f"  ERROR:   {e}", flush=True)
             break
@@ -84,6 +92,8 @@ def main():
     ap.add_argument("--api", default="http://localhost:8080")
     ap.add_argument("--clave", required=True, help="El mismo BOT_API_KEY del .env")
     ap.add_argument("--rondas", type=int, default=1)
+    ap.add_argument("--pausa", type=float, default=8, help="Segundos entre mensajes (límite por minuto de Gemini)")
+    ap.add_argument("--espera", type=float, default=45, help="Segundos antes de reintentar si Gemini está ocupado")
     args = ap.parse_args()
 
     catalogo = llamar(args.api + "/api/bot/catalogo", args.clave)
