@@ -121,8 +121,9 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_ADMIN_CHAT_ID: ${TELEGRAM_ADMIN_CHAT_ID:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
-      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.5-flash-lite}
+      # El bot usa primero el modelo lite: responde rápido y casi nunca da 503 por alta demanda
+      GEMINI_MODEL: ${BOT_GEMINI_MODEL:-gemini-3.5-flash-lite}
+      GEMINI_FALLBACK_MODEL: ${BOT_GEMINI_FALLBACK_MODEL:-gemini-3.8-flash}
     ports:
       - "5678:5678"
     volumes:
