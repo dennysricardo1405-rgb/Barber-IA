@@ -1,0 +1,167 @@
+{
+  "id": "barberiaErrores1",
+  "name": "Errores del bot",
+  "active": false,
+  "nodes": [
+    {
+      "id": "81771adf-2e8b-55fd-96a0-72e94fd0612c",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "a5f830d7-eb42-5971-82cc-0cb7f2605f5c",
+      "name": "Guardar en la bitácora",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/fallos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "flujo",
+              "value": "={{ $json.workflow.name }}"
+            },
+            {
+              "name": "nodo",
+              "value": "={{ $json.execution.lastNodeExecuted }}"
+            },
+            {
+              "name": "mensaje",
+              "value": "={{ $json.execution.error.message }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "4af7655f-ee23-5599-91aa-a9d8e58d7a19",
+      "name": "¿Hay chat del administrador?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8d976337-bc93-5ce4-9450-7b59727b5c1b",
+              "leftValue": "={{ $env.TELEGRAM_ADMIN_CHAT_ID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d917c238-1275-5912-96b4-ff5f98216752",
+      "name": "Avisar al administrador",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        -100
+      ],
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_ADMIN_CHAT_ID }}",
+        "text": "=Alerta del bot de citas\nFlujo: {{ $('Error Trigger').first().json.workflow.name }}\nNodo: {{ $('Error Trigger').first().json.execution.lastNodeExecuted }}\nError: {{ $('Error Trigger').first().json.execution.error.message }}\nEjecución: {{ $('Error Trigger').first().json.execution.id }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "telegramBarberia",
+          "name": "Telegram - bot de citas"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Guardar en la bitácora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en la bitácora": {
+      "main": [
+        [
+          {
+            "node": "¿Hay chat del administrador?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay chat del administrador?": {
+      "main": [
+        [
+          {
+            "node": "Avisar al administrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Lima"
+  },
+  "pinData": {},
+  "tags": []
+}

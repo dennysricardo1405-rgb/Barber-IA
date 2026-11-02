@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Automatización | La Clásica</title>
+    <div th:replace="~{layout/sidebar :: head_comun}"></div>
+    <link rel="stylesheet" th:href="@{/css/monitoreo.css}">
+    <style>
+        .panel-u4 { background: #141414; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 18px; color: #ccc; }
+        .panel-u4 h5 { color: #eee; }
+        .comparacion td, .comparacion th { padding: 6px 10px; }
+        .valor-antes { color: #e67e22; font-weight: 700; }
+        .valor-despues { color: #2ecc71; font-weight: 700; }
+        .table-u4 { --bs-table-bg: transparent; --bs-table-color: #ccc; font-size: .88rem; }
+        .table-u4 th { color: #888; font-weight: 600; border-color: #2a2a2a; }
+        .table-u4 td { border-color: #222; }
+        .form-u4 .form-control { background: #1e1e1e; color: #eee; border-color: #333; }
+        .form-u4 label { color: #999; font-size: .8rem; }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div th:replace="~{layout/sidebar :: sidebar_menu(activePage='automatizacion')}"></div>
+
+    <div class="main-content pt-4">
+        <div class="container-fluid">
+
+            <div class="mb-4">
+                <h2 class="fw-bold m-0 text-primary">Automatización: agente de citas</h2>
+                <p class="text-muted m-0 small">Bot de Telegram con n8n y Gemini. Cada conversación queda registrada
+                    y se compara con el agendamiento manual cronometrado.</p>
+            </div>
+
+            <div th:if="${ok}" class="alert alert-success py-2" th:text="${ok}"></div>
+            <div th:if="${error}" class="alert alert-danger py-2" th:text="${error}"></div>
+
+            <!-- KPIs -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Conversaciones</small>
+                        <div class="kpi-valor" th:text="${m.conversaciones}">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Citas agendadas por el bot</small>
+                        <div class="kpi-valor" th:text="${m.citasCreadas}">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Sin intervención humana</small>
+                        <div class="kpi-valor" th:text="${m.porcentajeSinIntervencion != null ? m.porcentajeSinIntervencion + ' %' : '-'}">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Minutos de personal ahorrados</small>
+                        <div class="kpi-valor" th:text="${m.minutosPersonalAhorrados != null ? m.minutosPersonalAhorrados : '-'}">-</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Errores controlados</small>
+                        <div class="kpi-valor" th:text="${m.erroresControlados}">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2">
+                    <div class="kpi"><small>Fallos no controlados</small>
+                        <div class="kpi-valor" th:text="${m.fallosNoControlados}">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <!-- Antes / después -->
+                <div class="col-xl-6">
+                    <div class="panel-u4 h-100">
+                        <h5 class="fw-bold mb-3">Antes y después</h5>
+                        <table class="comparacion w-100">
+                            <tr>
+                                <th></th>
+                                <th>Manual (línea base)</th>
+                                <th>Agente</th>
+                            </tr>
+                            <tr>
+                                <td>Tiempo hasta tener la cita</td>
+                                <td class="valor-antes" th:text="${m.minutosTotalManual != null ? m.minutosTotalManual + ' min' : 'sin medir'}"></td>
+                                <td class="valor-despues" th:text="${m.minutosPromedioBot != null ? m.minutosPromedioBot + ' min' : 'sin datos'}"></td>
+                            </tr>
+                            <tr>
+                                <td>Tiempo del personal por cita</td>
+                                <td class="valor-antes" th:text="${m.minutosAtencionManual != null ? m.minutosAtencionManual + ' min' : 'sin medir'}"></td>
+                                <td class="valor-despues">0 min</td>
+                            </tr>
+                            <tr>
+                                <td>Horario de atención</td>
+                                <td class="valor-antes">Solo con personal</td>
+                                <td class="valor-despues">24 horas</td>
+                            </tr>
+                        </table>
+                        <p class="small mt-3 mb-0" th:if="${m.reduccionTiempoPorcentaje != null}">
+                            Reducción del tiempo de agendamiento:
+                            <strong class="valor-despues" th:text="${m.reduccionTiempoPorcentaje + ' %'}"></strong>.
+                            Citas agendadas fuera del horario del local:
+                            <strong th:text="${m.citasFueraDeHorario}"></strong>.
+                        </p>
+                        <p class="small text-muted mt-3 mb-0">
+                            Base: <span th:text="${m.muestrasLineaBase}"></span> agendamientos manuales cronometrados y
+                            <span th:text="${m.citasCreadas}"></span> citas del bot. Abandonadas:
+                            <span th:text="${m.abandonadas}"></span>, en curso: <span th:text="${m.enCurso}"></span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Errores por tipo -->
+                <div class="col-xl-6">
+                    <div class="panel-u4 h-100">
+                        <h5 class="fw-bold mb-3">Excepciones controladas por tipo</h5>
+                        <p class="small text-muted" th:if="${#maps.isEmpty(m.erroresPorCodigo)}">Todavía no hay errores
+                            registrados.</p>
+                        <table class="table table-u4 mb-0" th:unless="${#maps.isEmpty(m.erroresPorCodigo)}">
+                            <thead>
+                                <tr><th>Código</th><th class="text-end">Veces</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="e : ${m.erroresPorCodigo}">
+                                    <td th:text="${e.key}"></td>
+                                    <td class="text-end" th:text="${e.value}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Línea base manual -->
+            <div class="panel-u4 mb-4">
+                <h5 class="fw-bold mb-1">Línea base: agendamientos manuales cronometrados</h5>
+                <p class="small text-muted">Registra cada agendamiento hecho a mano por chat: minutos que el personal
+                    estuvo atendiendo y minutos totales hasta que el cliente tuvo su cita.</p>
+                <form method="post" th:action="@{/admin/automatizacion/linea-base}" class="row g-2 align-items-end form-u4 mb-3">
+                    <div class="col-6 col-md-2">
+                        <label>Fecha</label>
+                        <input type="date" name="fecha" class="form-control form-control-sm" th:value="${hoy}" required>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label>Min. de atención</label>
+                        <input type="number" name="minutosAtencion" step="0.1" min="0.1" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label>Min. totales</label>
+                        <input type="number" name="minutosTotal" step="0.1" min="0.1" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label>Nota</label>
+                        <input type="text" name="nota" maxlength="200" class="form-control form-control-sm" placeholder="Ej.: cliente preguntó precios">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button class="btn btn-sm btn-warning w-100">Agregar</button>
+                    </div>
+                </form>
+                <table class="table table-u4 mb-0" th:unless="${#lists.isEmpty(lineaBase)}">
+                    <thead>
+                        <tr><th>Fecha</th><th>Atención</th><th>Total</th><th>Nota</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="l : ${lineaBase}">
+                            <td th:text="${#temporals.format(l.fecha, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${l.minutosAtencion + ' min'}"></td>
+                            <td th:text="${l.minutosTotal + ' min'}"></td>
+                            <td th:text="${l.nota}"></td>
+                            <td class="text-end">
+                                <form method="post" th:action="@{/admin/automatizacion/linea-base/{id}/eliminar(id=${l.id})}">
+                                    <button class="btn btn-sm btn-outline-danger py-0">Quitar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-xl-7">
+                    <div class="panel-u4">
+                        <h5 class="fw-bold mb-3">Últimas conversaciones</h5>
+                        <table class="table table-u4 mb-0">
+                            <thead>
+                                <tr><th>Inicio</th><th>Canal</th><th>DNI</th><th>Mensajes</th><th>Errores</th><th>Resultado</th><th>Cita</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${conversaciones}">
+                                    <td th:text="${#temporals.format(c.inicio, 'dd/MM HH:mm')}"></td>
+                                    <td th:text="${c.canal}"></td>
+                                    <td th:text="${c.dni != null ? c.dni : '-'}"></td>
+                                    <td th:text="${c.mensajes}"></td>
+                                    <td th:text="${c.erroresControlados}"></td>
+                                    <td th:text="${c.resultado}"></td>
+                                    <td th:text="${c.citaId != null ? 'LC-' + #numbers.formatInteger(c.citaId, 5) : '-'}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(conversaciones)}">
+                                    <td colspan="7" class="text-muted">Sin conversaciones todavía.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-xl-5">
+                    <div class="panel-u4">
+                        <h5 class="fw-bold mb-3">Bitácora de excepciones</h5>
+                        <table class="table table-u4 mb-0">
+                            <thead>
+                                <tr><th>Fecha</th><th>Tipo</th><th>Detalle</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="e : ${eventos}">
+                                    <td th:text="${#temporals.format(e.fecha, 'dd/MM HH:mm')}"></td>
+                                    <td>
+                                        <span class="badge" th:classappend="${e.tipo == 'FALLO' ? 'bg-danger' : 'bg-secondary'}"
+                                            th:text="${e.codigo}"></span>
+                                    </td>
+                                    <td class="small" th:text="${e.detalle}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(eventos)}">
+                                    <td colspan="3" class="text-muted">Sin eventos.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

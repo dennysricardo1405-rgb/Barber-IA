@@ -1,0 +1,1128 @@
+{
+  "id": "barberiaAgente01",
+  "name": "Agente de citas (Telegram)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "dd5ec60d-a7a0-532f-a942-5e17307f22b8",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "df2bdf89-7af2-574c-a699-7ab3f63231a2",
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "telegramBarberia",
+          "name": "Telegram - bot de citas"
+        }
+      }
+    },
+    {
+      "id": "a3ecc039-d2dd-5e98-a6c5-919f3d536ccc",
+      "name": "Webhook de prueba",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "43809158-0b80-58d1-ae7c-63c9c7024487",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bot-prueba",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "b588a914-5603-55e1-9490-c2c774dda62a",
+      "name": "Clave de prueba válida",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a33003be-95ea-5358-a1af-5cb4d842dd05",
+              "leftValue": "={{ $json.headers['x-bot-key'] }}",
+              "rightValue": "={{ $env.BOT_API_KEY }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "948d5410-00e3-580c-bb51-f40f9c4f7b8b",
+      "name": "Rechazar prueba",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        440,
+        460
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, mensaje: 'Clave inválida' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "67875ccd-3792-523e-8a14-e00608a38faa",
+      "name": "Desde Telegram",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a13c9474-3a04-5943-b738-73ca4441a60b",
+              "name": "chatId",
+              "value": "={{ String($json.message.chat.id) }}",
+              "type": "string"
+            },
+            {
+              "id": "61870fd2-5944-54ac-a5ab-55360d289f74",
+              "name": "texto",
+              "value": "={{ $json.message.text || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "7d52cdf4-60e5-5919-adc2-e9a5648cf1a2",
+              "name": "canal",
+              "value": "TELEGRAM",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "2ae73b74-a949-5412-bad6-2c774a47f1eb",
+      "name": "Desde prueba",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e6d6dee9-1c4e-5245-bad0-d793447f28cb",
+              "name": "chatId",
+              "value": "={{ 'prueba-' + $json.body.conversacion }}",
+              "type": "string"
+            },
+            {
+              "id": "5a348ccd-7a0c-5f85-8c02-68a37bab502d",
+              "name": "texto",
+              "value": "={{ $json.body.texto || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "cab491ee-e1ce-5d9b-bba1-bcb94454cea5",
+              "name": "canal",
+              "value": "PRUEBA",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "9ad81d22-f757-5ed2-b4dc-8b4aa15719a7",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        660,
+        100
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "dc3574a0-0ad0-5e1e-950b-cac0fb4d71ac",
+      "name": "Registrar mensaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/mensajes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chatId",
+              "value": "={{ $json.chatId }}"
+            },
+            {
+              "name": "canal",
+              "value": "={{ $json.canal }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "6f40ef9b-5065-51bb-9233-71ef1bfad6f2",
+      "name": "¿Es texto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "84574550-43a1-544f-a987-300e56921567",
+              "leftValue": "={{ $('Entrada').first().json.texto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "82590ff1-55be-5055-b949-c1539ec633cc",
+      "name": "Agente de citas",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1340,
+        -100
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Entrada').first().json.texto }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Eres el asistente de reservas de Barbería La Clásica (Chiclayo, Perú). Atiendes por chat, en español, con mensajes cortos, claros y amables. No uses formato Markdown.\n\nFecha y hora actual en Perú: {{ $now.setZone('America/Lima').setLocale('es').toFormat(\"cccc d 'de' LLLL 'de' yyyy, HH:mm\") }} (hoy es {{ $now.setZone('America/Lima').toFormat('yyyy-LL-dd') }}).\n{{ $('Registrar mensaje').first().json.clienteConocido ? 'Cliente ya identificado: ' + $('Registrar mensaje').first().json.nombre + ', DNI ' + $('Registrar mensaje').first().json.dni + '. No vuelvas a pedirle el DNI.' : 'El cliente todavía no está identificado.' }}\n\nTu único trabajo es agendar citas y responder dudas sobre servicios, precios, barberos y horarios. Si te piden otra cosa, explica con amabilidad que solo ayudas con reservas.\n\nPasos para agendar:\n1. Si el cliente no está identificado, pide su DNI y usa buscar_cliente. Si no existe, confirma el nombre que devolvió RENIEC (o pídele nombre y apellido), pide su celular y usa registrar_cliente.\n2. Si buscar_cliente devuelve citasActivas, muéstrale su cita: solo puede tener una pendiente a la vez.\n3. Usa ver_catalogo para mostrar servicios (con precio) y barberos. Nunca inventes servicios, barberos, precios ni horarios.\n4. Cuando tengas servicio, barbero y día, usa ver_horarios y ofrece solo horas que estén en horasLibres.\n5. Antes de reservar, muestra un resumen (servicio, barbero, fecha, hora y precio) y pregunta si confirma. Solo si responde que sí, usa crear_cita con confirmado = true.\n6. Si crear_cita responde ok = true, envía el comprobante: código, servicio, barbero, día y fecha, hora, precio e indicaciones.\n\nReglas:\n- En las herramientas usa fechas AAAA-MM-DD y horas HH:mm de 24 horas. Convierte \"mañana\", \"el sábado\", \"a las 4 de la tarde\", etc. a partir de la fecha actual.\n- Si una herramienta responde ok = false, explica el motivo con tus palabras y ofrece una salida (usa \"alternativas\" u \"hoy\" si vienen). No repitas la misma llamada sin cambiar los datos.\n- Nunca digas que la cita quedó registrada si crear_cita no respondió ok = true.\n- No pidas correo, contraseñas ni datos de pago. El pago se hace en el local.\n- Si el cliente escribe algo que no entiendes, pide que lo repita de otra forma y recuérdale lo que puedes hacer.",
+          "maxIterations": 12,
+          "enableStreaming": false
+        }
+      }
+    },
+    {
+      "id": "13d6c6bc-61d8-587a-843b-1892ccdc4186",
+      "name": "Gemini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1100,
+        200
+      ],
+      "parameters": {
+        "modelName": "=models/{{ $env.GEMINI_MODEL }}",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "geminiBarberia",
+          "name": "Gemini - clave del asesor IA"
+        }
+      }
+    },
+    {
+      "id": "fb0a6502-e2ba-5f5d-b052-b7e20d267796",
+      "name": "Gemini respaldo",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1220,
+        200
+      ],
+      "parameters": {
+        "modelName": "=models/{{ $env.GEMINI_FALLBACK_MODEL }}",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "geminiBarberia",
+          "name": "Gemini - clave del asesor IA"
+        }
+      }
+    },
+    {
+      "id": "3243aa89-829d-5e32-be99-e56daa5e17f2",
+      "name": "Memoria del chat",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1340,
+        200
+      ],
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Entrada').first().json.chatId }}",
+        "contextWindowLength": 20
+      }
+    },
+    {
+      "id": "436f2ef6-ba82-578a-8131-858c2cdc6937",
+      "name": "buscar_cliente",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        320
+      ],
+      "parameters": {
+        "toolDescription": "Busca al cliente por su DNI. Devuelve si existe, su nombre y sus citas activas. Si no existe, devuelve el nombre según RENIEC.",
+        "descriptionType": "manual",
+        "method": "GET",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/clientes/{{ $fromAI('dni', `DNI del cliente, 8 dígitos`, 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            },
+            {
+              "name": "X-CHAT-ID",
+              "value": "={{ $('Entrada').first().json.chatId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "b03d14fa-db1a-5828-bd4e-f16b7d64e7d6",
+      "name": "registrar_cliente",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        320
+      ],
+      "parameters": {
+        "toolDescription": "Registra un cliente nuevo. Úsalo solo si buscar_cliente dijo que no existe.",
+        "descriptionType": "manual",
+        "method": "POST",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/clientes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            },
+            {
+              "name": "X-CHAT-ID",
+              "value": "={{ $('Entrada').first().json.chatId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dni",
+              "value": "={{ $fromAI('dni', `DNI de 8 dígitos`, 'string') }}"
+            },
+            {
+              "name": "nombres",
+              "value": "={{ $fromAI('nombres', `Nombres del cliente`, 'string') }}"
+            },
+            {
+              "name": "apellidos",
+              "value": "={{ $fromAI('apellidos', `Apellidos del cliente`, 'string') }}"
+            },
+            {
+              "name": "telefono",
+              "value": "={{ $fromAI('telefono', `Celular de 9 dígitos`, 'string') }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "037a8f23-fdf9-520b-ac88-1ced6f60648c",
+      "name": "ver_catalogo",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1700,
+        320
+      ],
+      "parameters": {
+        "toolDescription": "Lista los servicios activos (con precio y duración), los barberos activos (con su día libre) y el horario de atención.",
+        "descriptionType": "manual",
+        "method": "GET",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/catalogo",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            },
+            {
+              "name": "X-CHAT-ID",
+              "value": "={{ $('Entrada').first().json.chatId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "ca26c024-4d8e-5fe0-97b4-071e6d901d67",
+      "name": "ver_horarios",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        320
+      ],
+      "parameters": {
+        "toolDescription": "Devuelve las horas libres de un barbero en una fecha para un servicio.",
+        "descriptionType": "manual",
+        "method": "GET",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/horarios",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            },
+            {
+              "name": "X-CHAT-ID",
+              "value": "={{ $('Entrada').first().json.chatId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "barberoId",
+              "value": "={{ $fromAI('barberoId', `id del barbero según ver_catalogo`, 'number') }}"
+            },
+            {
+              "name": "fecha",
+              "value": "={{ $fromAI('fecha', `fecha en formato AAAA-MM-DD`, 'string') }}"
+            },
+            {
+              "name": "servicioId",
+              "value": "={{ $fromAI('servicioId', `id del servicio según ver_catalogo`, 'number') }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "73ff07cb-7ff0-5b95-b8d7-cdd64a60b63b",
+      "name": "crear_cita",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1940,
+        320
+      ],
+      "parameters": {
+        "toolDescription": "Registra la cita. Solo después de mostrar el resumen y que el cliente responda que sí.",
+        "descriptionType": "manual",
+        "method": "POST",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/citas",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            },
+            {
+              "name": "X-CHAT-ID",
+              "value": "={{ $('Entrada').first().json.chatId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dni",
+              "value": "={{ $fromAI('dni', `DNI del cliente`, 'string') }}"
+            },
+            {
+              "name": "servicioId",
+              "value": "={{ $fromAI('servicioId', `id del servicio`, 'number') }}"
+            },
+            {
+              "name": "barberoId",
+              "value": "={{ $fromAI('barberoId', `id del barbero`, 'number') }}"
+            },
+            {
+              "name": "fecha",
+              "value": "={{ $fromAI('fecha', `AAAA-MM-DD`, 'string') }}"
+            },
+            {
+              "name": "hora",
+              "value": "={{ $fromAI('hora', `HH:mm de 24 horas`, 'string') }}"
+            },
+            {
+              "name": "confirmado",
+              "value": "={{ $fromAI('confirmado', `true solo si el cliente confirmó el resumen`, 'boolean') }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1a80826a-dba9-5a6f-abc5-24db80ccca4c",
+      "name": "Respuesta del agente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1600,
+        -100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3f0da85a-37ea-58d5-b353-80e216271e59",
+              "name": "respuesta",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "1577c353-a80c-51e4-b8a1-a7d20c4a29d8",
+      "name": "Solo texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1340,
+        60
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3fb0940-48d1-5eec-9cec-e5aca647a965",
+              "name": "respuesta",
+              "value": "Por ahora solo puedo leer mensajes de texto. Escríbeme qué día y servicio quieres.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "6cf587f0-bc01-5a78-ba71-d53454d84089",
+      "name": "IA no disponible",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1600,
+        60
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9d1b214-c283-5dbb-ba5d-260d58ff32dd",
+              "name": "respuesta",
+              "value": "Estamos con mucha demanda en este momento. Escríbeme de nuevo en un par de minutos, por favor.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "8ca16b59-e62a-5683-be8d-986b9a998268",
+      "name": "Reportar fallo de IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        60
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/fallos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "flujo",
+              "value": "={{ $workflow.name }}"
+            },
+            {
+              "name": "nodo",
+              "value": "Agente de citas"
+            },
+            {
+              "name": "mensaje",
+              "value": "={{ $json.error?.message || JSON.stringify($json.error || $json).slice(0, 400) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "c6b7cbf0-2c26-54b4-a317-f7c0b009874b",
+      "name": "Sistema no disponible",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        260
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "80d3ce4c-c0e9-5e82-b1de-ac9e1b35c477",
+              "name": "respuesta",
+              "value": "Tenemos un problema técnico y no puedo revisar la agenda ahora. Intenta en unos minutos o llama a la barbería.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "f8dfcbb2-50df-5051-b085-22707bfa29f6",
+      "name": "Reportar fallo del backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BARBERIA_API_URL }}/api/bot/fallos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-BOT-KEY",
+              "value": "={{ $env.BOT_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "flujo",
+              "value": "={{ $workflow.name }}"
+            },
+            {
+              "name": "nodo",
+              "value": "Registrar mensaje"
+            },
+            {
+              "name": "mensaje",
+              "value": "={{ $json.error?.message || 'Backend no responde' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "c8dc1a59-00a1-5ce4-996f-1abf3f0b1373",
+      "name": "¿Es Telegram?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2280,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "70029937-c34e-522d-8f47-8986fd494266",
+              "leftValue": "={{ $('Entrada').first().json.canal }}",
+              "rightValue": "TELEGRAM",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "910ab179-689c-59ac-8951-47c539eeadc0",
+      "name": "Responder por Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2500,
+        0
+      ],
+      "parameters": {
+        "chatId": "={{ $('Entrada').first().json.chatId }}",
+        "text": "={{ $json.respuesta }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "telegramBarberia",
+          "name": "Telegram - bot de citas"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "93f8bc71-cbb1-5e3e-a408-b97d98562c3c",
+      "name": "Responder prueba",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2500,
+        200
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { respuesta: $json.respuesta } }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Desde Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook de prueba": {
+      "main": [
+        [
+          {
+            "node": "Clave de prueba válida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clave de prueba válida": {
+      "main": [
+        [
+          {
+            "node": "Desde prueba",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rechazar prueba",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desde Telegram": {
+      "main": [
+        [
+          {
+            "node": "Entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desde prueba": {
+      "main": [
+        [
+          {
+            "node": "Entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Registrar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar mensaje": {
+      "main": [
+        [
+          {
+            "node": "¿Es texto?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sistema no disponible",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reportar fallo del backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es texto?": {
+      "main": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Solo texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente de citas": {
+      "main": [
+        [
+          {
+            "node": "Respuesta del agente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IA no disponible",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reportar fallo de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta del agente": {
+      "main": [
+        [
+          {
+            "node": "¿Es Telegram?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo texto": {
+      "main": [
+        [
+          {
+            "node": "¿Es Telegram?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA no disponible": {
+      "main": [
+        [
+          {
+            "node": "¿Es Telegram?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sistema no disponible": {
+      "main": [
+        [
+          {
+            "node": "¿Es Telegram?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es Telegram?": {
+      "main": [
+        [
+          {
+            "node": "Responder por Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder prueba",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini respaldo": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Memoria del chat": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_cliente": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "registrar_cliente": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ver_catalogo": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ver_horarios": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crear_cita": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de citas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "barberiaErrores1",
+    "timezone": "America/Lima",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "tags": []
+}

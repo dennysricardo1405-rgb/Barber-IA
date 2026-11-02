@@ -32,6 +32,10 @@ public class Cliente {
     private String password;
  
     private int estado = 1;
+
+    // U4: chat de Telegram asociado, para no pedir el DNI en cada conversación
+    @Column(name = "telegram_chat_id", length = 60)
+    private String telegramChatId;
  
     @CreationTimestamp
     @Column(name = "fecha_registro", updatable = false)

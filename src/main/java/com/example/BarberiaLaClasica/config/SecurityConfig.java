@@ -32,7 +32,9 @@ public class SecurityConfig {
                                 "/api/clientes/**",
                                 // U2 asesor IA (también lo consume la app Streamlit) y U3 nodos IoT por HTTP
                                 "/api/ia/asesor/**",
-                                "/api/iot/**"))
+                                "/api/iot/**",
+                                // U4 agente de citas (n8n entra con su clave X-BOT-KEY)
+                                "/api/bot/**"))
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
                         // 1. ✅ Rutas públicas y recursos estáticos
@@ -54,6 +56,9 @@ public class SecurityConfig {
                         // U3: los nodos IoT envían por HTTP con su token; el dashboard es interno
                         .requestMatchers("/api/iot/**").permitAll()
                         .requestMatchers("/monitoreo", "/monitoreo/**").hasAnyRole("ADMINISTRADOR", "SECRETARIO")
+
+                        // U4: el agente de n8n se valida con su clave en BotApiController
+                        .requestMatchers("/api/bot/**").permitAll()
 
                         // 2. ✅ APIs internas compartidas
                         .requestMatchers("/api/clientes/**").hasAnyRole("ADMINISTRADOR", "SECRETARIO")
