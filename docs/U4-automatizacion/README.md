@@ -108,11 +108,14 @@ Los mismos datos salen en JSON en `GET /api/bot/metricas`.
    - `BOT_API_KEY` y `N8N_ENCRYPTION_KEY`: dos claves largas que inventas. Una forma de generarlas en PowerShell
      (**el comando muestra la clave en pantalla**, pégala directo en el `.env`):
      `[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))`
+   - Opcional `BOT_GEMINI_MODEL` y `BOT_GEMINI_FALLBACK_MODEL`: modelos del bot. Por defecto usa
+     `gemini-3.5-flash-lite` y, si falla, `gemini-3.8-flash`. El lite va primero porque el otro a veces responde
+     503 por alta demanda y n8n lo reintenta varias veces antes de pasar al respaldo (las respuestas tardaban minutos).
    - Opcional `TELEGRAM_ADMIN_CHAT_ID`: tu número de chat (te lo da @userinfobot) para recibir las alertas.
 3. Levanta todo:
    ```powershell
    docker compose --profile iot --profile bot up -d --build
-   docker compose logs n8n | Select-String "URL pública"
+   docker compose logs n8n | Select-String "trycloudflare"
    ```
    Debe mostrar una dirección `https://….trycloudflare.com/`. Cambia cada vez que se reinicia el túnel; n8n la toma
    solo al arrancar. Si el túnel se reinició, ejecuta `docker compose restart n8n`.
