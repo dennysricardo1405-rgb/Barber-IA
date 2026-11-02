@@ -54,5 +54,5 @@ Si no hay broker, la aplicación arranca igual y reintenta la conexión MQTT en 
 ## Pruebas
 
 ```bash
-./mvnw verify      # 58 pruebas con H2 en memoria + reporte de cobertura en target/site/jacoco
+./mvnw verify      # 59 pruebas con H2 en memoria + reporte de cobertura en target/site/jacoco
 ```

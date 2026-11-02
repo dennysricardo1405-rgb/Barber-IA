@@ -190,6 +190,16 @@ class BotApiTest {
     }
 
     @Test
+    void lasConversacionesDePruebaNoConsultanReniec() throws Exception {
+        mvc.perform(get("/api/bot/clientes/" + dniNuevo()).header("X-BOT-KEY", CLAVE)
+                .header("X-CHAT-ID", "prueba-r0-exitosa-1"))
+                .andExpect(jsonPath("$.existe").value(false))
+                .andExpect(jsonPath("$.nombresReniec").doesNotExist());
+        bot(get("/api/bot/clientes/" + dniNuevo()))
+                .andExpect(jsonPath("$.nombresReniec").value("ANA"));
+    }
+
+    @Test
     void validaFechasHorasYDiaLibre() throws Exception {
         String ayer = LocalDate.now(ZoneId.of("America/Lima")).minusDays(1).toString();
         bot(get("/api/bot/horarios").param("barberoId", "" + barbero.getId()).param("fecha", ayer))
